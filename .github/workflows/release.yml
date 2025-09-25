@@ -1,0 +1,16 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "*"
+      - "!*-beta"
+
+jobs:
+  release:
+    uses: idelchi/devenv/.github/workflows/gorelease.yml@main
+    permissions:
+      contents: write
+    with:
+      config: .devenv/settings/.goreleaser.yaml
