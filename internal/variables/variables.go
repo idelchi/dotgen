@@ -10,10 +10,11 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 
 	"github.com/shirou/gopsutil/v4/host"
+
+	"github.com/idelchi/dotgen/internal/format"
 
 	"go.yaml.in/yaml/v4"
 )
@@ -23,19 +24,7 @@ type Variables map[string]any
 
 // Export returns a string representation of the variables, as a comment block.
 func (v Variables) Export() string {
-	keys := make([]string, 0, len(v))
-	for k := range v {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	out := make([]string, len(keys))
-	for i, k := range keys {
-		out[i] = fmt.Sprintf("# %s=%v", k, v[k])
-	}
-
-	return strings.Join(out, "\n")
+	return format.Map(v, "%s=%q")
 }
 
 // Values represents a list of value file paths.
@@ -63,10 +52,15 @@ func (v Values) Variables() (Variables, error) {
 }
 
 // Defaults returns a set of default variables based on the current environment.
-func Defaults(shell string) Variables {
+func Defaults(shell, file string) Variables {
 	variables := make(Variables)
 
 	variables["OS"] = runtime.GOOS
+
+	if file != "" {
+		variables["DOTGEN_CURRENT_FILE"] = filepath.ToSlash(file)
+		variables["DOTGEN_CURRENT_DIR"] = filepath.ToSlash(filepath.Dir(file))
+	}
 
 	info, err := host.Info()
 	if err == nil {
@@ -92,6 +86,13 @@ func Defaults(shell string) Variables {
 			variables["HOME"] = filepath.ToSlash(usr.HomeDir)
 		}
 	}
+
+	//nolint:errcheck,forcetypeassert // HOME cannot be non-string here.
+	home := variables["HOME"].(string)
+
+	variables["CONFIG_DIR"] = filepath.ToSlash(filepath.Join(home, ".config"))
+	variables["CACHE_DIR"] = filepath.ToSlash(filepath.Join(home, ".cache"))
+	variables["TMPDIR"] = filepath.ToSlash(os.TempDir())
 
 	variables["SHELL"] = shell
 

@@ -1,9 +1,9 @@
 /*
 Usage:
 
-	aliaser [command] [flags]
+	dotgen [command] [flags]
 
-Use "aliaser --help" for more information.
+Use "dotgen --help" for more information.
 */
 package main
 
@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/idelchi/aliaser/internal/cli"
+	"github.com/idelchi/dotgen/internal/cli"
 )
 
 // version is the application version injected at build time.

@@ -2,8 +2,8 @@
 set -e
 
 # Tool specific variables
-TOOL="aliaser"
-DISABLE_SSL="${ALIASER_DISABLE_SSL:-false}"
+TOOL="dotgen"
+DISABLE_SSL="${DOTGEN_DISABLE_SSL:-false}"
 
 need_cmd() {
   if ! command -v "${1}" >/dev/null 2>&1; then

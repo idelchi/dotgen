@@ -13,6 +13,8 @@ linters:
     - wsl
     # Occasional dynamic errors are fine
     - err113
+    # Too noisy
+    - exhaustruct
 
   settings:
     wsl_v5:
@@ -45,8 +47,8 @@ linters:
 
     govet:
       enable-all: true
-      # disable:
-      #   - fieldalignment
+      disable:
+        - fieldalignment
 
     inamedparam:
       skip-single-param: true
@@ -91,6 +93,11 @@ linters:
       ignore-names:
         - tc
         - ok
+
+    tagliatelle:
+      case:
+        rules:
+          yaml: snake
 
   exclusions:
     generated: lax

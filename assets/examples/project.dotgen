@@ -1,0 +1,49 @@
+
+values:
+  BIN_DIR: $HOME/bin
+
+---
+env:
+  EDITOR: nano
+
+vars:
+  project: /work/src/myproject
+
+commands:
+  - name: fetch
+    kind: function
+    cmd: |
+      echo "Fetching project..."
+      mkdir -p {{ .BIN_DIR }}
+      curl -sSL https://example.com/myproject -o {{ .BIN_DIR }}/myproject
+
+  - name: gs
+    cmd: git status
+    kind: alias
+    exclude: {{ notInPath "git" }}
+
+  - name: hostname
+    doc: export hostname as variable
+    kind: run
+    cmd: |
+      echo "export HOSTNAME=$(hostname -f 2>/dev/null || hostname)"
+
+  - name: zoxide integration
+    doc: zoxide shell integration
+    kind: run
+    cmd: zoxide init "{{ .SHELL }}" --cmd cd
+    export_to: {{ .CACHE_DIR }}/01-zoxide.rc
+    exclude: {{notInPath "zoxide"}}
+
+  - name: starship integration
+    doc: starship shell integration
+    kind: run
+    cmd: starship init --print-full-init "{{ .SHELL }}"
+    export_to: {{ .CACHE_DIR }}/00-starship.rc
+    exclude: {{ notInPath "starship" }}
+
+  - name: greet
+    kind: function
+    cmd: |
+      echo "Hello from '{{ .OS }}' on '{{ .ARCHITECTURE }}'!"
+      echo "Project base is ${project}"

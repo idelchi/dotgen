@@ -1,6 +1,6 @@
-package aliaser
+package dotgen
 
 // Kinds represents the supported command kinds.
 //
 //nolint:gochecknoglobals  // This is a constant list of supported kinds.
-var Kinds = []string{"alias", "function"}
+var Kinds = []string{"alias", "function", "raw", "run"}

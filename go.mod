@@ -1,13 +1,15 @@
-module github.com/idelchi/aliaser
+module github.com/idelchi/dotgen
 
 go 1.25.1
 
 require (
 	github.com/MakeNowJust/heredoc/v2 v2.0.1
+	github.com/bmatcuk/doublestar/v4 v4.9.1
 	github.com/go-task/slim-sprig/v3 v3.0.0
 	github.com/shirou/gopsutil/v4 v4.25.8
 	github.com/spf13/pflag v1.0.10
 	go.yaml.in/yaml/v4 v4.0.0-rc.2
+	mvdan.cc/sh/v3 v3.12.0
 )
 
 require (

@@ -1,4 +1,4 @@
-// Package template provides Go template parsing with sprig functions.
+// Package template provides Go template parsing with sprig and custom functions.
 package template
 
 import (
@@ -14,6 +14,7 @@ import (
 func Apply(templateString string, variables map[string]any) (string, error) {
 	template, err := template.New("cmd").
 		Funcs(sprig.FuncMap()).
+		Funcs(funcMap()).
 		Option("missingkey=error").
 		Parse(templateString)
 	if err != nil {
