@@ -1,4 +1,3 @@
-
 values:
   BIN_DIR: $HOME/bin
 
@@ -10,13 +9,6 @@ vars:
   project: /work/src/myproject
 
 commands:
-  - name: fetch
-    kind: function
-    cmd: |
-      echo "Fetching project..."
-      mkdir -p {{ .BIN_DIR }}
-      curl -sSL https://example.com/myproject -o {{ .BIN_DIR }}/myproject
-
   - name: gs
     cmd: git status
     kind: alias

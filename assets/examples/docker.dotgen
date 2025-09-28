@@ -1,19 +1,19 @@
-exclude: {{ and (notInPath "docker") (notInPath "podman") }}
+exclude: {{ notInPath "docker" }}
 
 ---
 commands:
   - name: dcr
-    doc: container compose run
-    cmd: container compose run --remove-orphans --rm
+    doc: docker compose run
+    cmd: docker compose run --remove-orphans --rm
 
   - name: dcrb
-    doc: container compose run with build
-    cmd: container compose run --build --remove-orphans --rm
+    doc: docker compose run with build
+    cmd: docker compose run --build --remove-orphans --rm
 
   - name: dcd
-    doc: container compose down
-    cmd: container compose down --remove-orphans
+    doc: docker compose down
+    cmd: docker compose down --remove-orphans
 
   - name: dcu
-    doc: container compose up
-    cmd: container compose up -d --remove-orphans
+    doc: docker compose up
+    cmd: docker compose up -d --remove-orphans

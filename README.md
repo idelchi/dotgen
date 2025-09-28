@@ -10,8 +10,6 @@ A tool to manage and render dotfiles.
 [![Build Status](https://github.com/idelchi/dotgen/actions/workflows/github-actions.yml/badge.svg)](https://github.com/idelchi/dotgen/actions/workflows/github-actions.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-![Demo](assets/gifs/dotgen.gif)
-
 `dotgen` is a command-line utility for defining, templating, and exporting dotfiles.
 
 Allows for defining dotfiles as YAML, applying Go template substitution and exporting as shell-ready scripts.
@@ -74,7 +72,6 @@ The header section can be omitted if not used.
 
 <!-- prettier-ignore-start -->
 ```yaml
-
 values:
   BIN_DIR: $HOME/bin
 
@@ -86,13 +83,6 @@ vars:
   project: /work/src/myproject
 
 commands:
-  - name: fetch
-    kind: function
-    cmd: |
-      echo "Fetching project..."
-      mkdir -p {{ .BIN_DIR }}
-      curl -sSL https://example.com/myproject -o {{ .BIN_DIR }}/myproject
-
   - name: gs
     cmd: git status
     kind: alias
@@ -140,13 +130,6 @@ project="/work/src/myproject"
 
 # Commands
 # ------------------------------------------------
-# name: fetch
-fetch() {
-  echo "Fetching project..."
-  mkdir -p $HOME/bin
-  curl -sSL https://example.com/myproject -o $HOME/bin/myproject
-}
-
 # name: gs
 alias gs='git status'
 
@@ -255,3 +238,7 @@ Additional custom functions:
 - `--verbose` - Enable verbose logging
 - `--debug`, `-d` - Show variables and rendered templates without further processing. Implies `--verbose`
 - `--version`, `-v` - Show version
+
+## Demo
+
+![Demo](assets/gifs/dotgen.gif)
