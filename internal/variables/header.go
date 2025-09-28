@@ -28,7 +28,7 @@ func NewHeader(data []byte) (header Header, err error) {
 			return Header{}, nil
 		}
 
-		return header, fmt.Errorf("parsing alias file: %w", err)
+		return header, fmt.Errorf("parsing dotgen header: %w", err)
 	}
 
 	return header, nil
