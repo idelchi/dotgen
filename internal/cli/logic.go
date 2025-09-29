@@ -176,7 +176,7 @@ func logic(options Options, logger Logger) error {
 
 		dotgen = dotgen.Filtered(os, options.Shell)
 
-		export, err := dotgen.Export(options.Shell)
+		export, err := dotgen.Export(options.Shell, file, options.Instrument)
 		if err != nil {
 			return fmt.Errorf("exporting dotgen config: %w", err)
 		}

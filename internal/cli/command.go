@@ -48,6 +48,8 @@ type Options struct {
 	Verbose bool
 	// Debug represents whether debug output is enabled.
 	Debug bool
+	// Instrument represents whether instrumentation for profiling is enabled.
+	Instrument bool
 	// Version represents whether to show the version and exit.
 	Version bool
 }
@@ -69,6 +71,7 @@ func (c CLI) Execute() error {
 	pflag.StringSliceVarP(&options.Values, "values", "V", []string{}, "Additional YAML value files")
 	pflag.BoolVar(&options.Verbose, "verbose", false, "Show verbose output")
 	pflag.BoolVarP(&options.Debug, "debug", "d", false, "Show debug output")
+	pflag.BoolVarP(&options.Instrument, "instrument", "I", false, "Enable instrumentation for profiling")
 	pflag.BoolVarP(&options.Version, "version", "v", false, "Show the version and exit")
 
 	pflag.CommandLine.SortFlags = false
@@ -82,7 +85,7 @@ func (c CLI) Execute() error {
 		return nil
 	}
 
-	if options.Debug {
+	if options.Debug || options.Instrument {
 		options.Verbose = true
 	}
 
