@@ -17,6 +17,8 @@ linters:
     - exhaustruct
     # Formatting is often more readable
     - perfsprint
+    # Mixing pointer and non-pointer receivers is fine
+    - recvcheck
 
   settings:
     wsl_v5:

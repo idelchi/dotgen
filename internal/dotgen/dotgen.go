@@ -87,13 +87,13 @@ func (a Dotgen) Export(shell, file string, instrument bool) (string, error) {
 		buf.WriteString("# ------------------------------------------------\n")
 	}
 
-	variable := fmt.Sprintf("__dotgen_instrumentation_%s", ToShellVar(file))
+	instrumentation := Instrument(file)
 
-	if instrument {
-		buf.WriteString("\n# Instrumentation\n")
-		buf.WriteString(fmt.Sprintf("%s=()\n", variable))
-		buf.WriteString("# ------------------------------------------------\n")
+	if !instrument {
+		instrumentation.Disable()
 	}
+
+	buf.WriteString(instrumentation.Header())
 
 	if len(a.Commands) > 0 {
 		buf.WriteString("\n# Commands\n")
@@ -107,38 +107,12 @@ func (a Dotgen) Export(shell, file string, instrument bool) (string, error) {
 				return "", fmt.Errorf("exporting command %q: %w", name, err)
 			}
 
-			name = ToShellVar(name)
-
-			prefix := fmt.Sprintf("__dotgen_%s_start", name)
-			suffix := fmt.Sprintf("__dotgen_%s_end", name)
-			elapsed := fmt.Sprintf("__dotgen_%s_elapsed", name)
-
-			if instrument {
-				buf.WriteString(prefix + "=$(date +%s%3N)\n")
-			}
-
-			buf.WriteString(command)
-
-			if instrument {
-				buf.WriteString(suffix + "=$(date +%s%3N)\n")
-				buf.WriteString(fmt.Sprintf("%s=$((%s - %s))\n", elapsed, suffix, prefix))
-
-				buf.WriteString(fmt.Sprintf("%s+=(\"%s ${%s}\")\n", variable, name, elapsed))
-			}
+			buf.WriteString(instrumentation.Wrap(name, command))
 
 			buf.WriteString("\n")
 		}
 
-		if instrument {
-			buf.WriteString("\n# Instrumentation\n")
-
-			summary := instrumentationSummary(variable)
-
-			buf.WriteString("echo '************************************************'\n")
-			buf.WriteString(fmt.Sprintf("echo \"[dotgen instrumentation] summary for %s:\"\n", file))
-			buf.WriteString(summary + "\n")
-			buf.WriteString("# ------------------------------------------------\n")
-		}
+		buf.WriteString(instrumentation.Footer())
 
 		buf.WriteString("# ------------------------------------------------\n")
 	}
