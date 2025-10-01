@@ -237,7 +237,8 @@ Additional custom functions:
 - `--values`, `-V` - Additional YAML values to merge and use in templates
 - `--verbose` - Enable verbose logging
 - `--debug`, `-d` - Show variables and rendered templates without further processing. Implies `--verbose`
-- `--instrument`, `-I` - Instrument command execution times and show summary. Implies `--verbose`
+- `--instrument`, `-I` - Instrument command execution times and show summary.
+  `$?` will not be respected between commands. Implies `--verbose`
 - `--version`, `-v` - Show version
 
 ## Demo

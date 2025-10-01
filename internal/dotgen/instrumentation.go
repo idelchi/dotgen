@@ -52,21 +52,29 @@ func (i Instrumentation) Wrap(name, command string) string {
 		return command
 	}
 
-	name = toShellVar(name)
+	shellName := toShellVar(name)
 
-	prefix := fmt.Sprintf("__dotgen_%s_start", name)
-	suffix := fmt.Sprintf("__dotgen_%s_end", name)
-	elapsed := fmt.Sprintf("__dotgen_%s_elapsed", name)
+	prefix := fmt.Sprintf("__dotgen_%s_start", shellName)
+	suffix := fmt.Sprintf("__dotgen_%s_end", shellName)
+	elapsed := fmt.Sprintf("__dotgen_%s_elapsed", shellName)
 
 	return heredoc.Docf(`
+
+		# Instrumentation for: %s
+		# ------------------------------------------------
+
 		%s=$(date +%%s%%3N)
 
+		# Command to measure
+		# ------------------------------------------------
 		%s
+		# ------------------------------------------------
 
 		%s=$(date +%%s%%3N)
 		%s=$((%s - %s))
 		%s+=("%s ${%s}")
-	`, prefix, command, suffix, elapsed, suffix, prefix, i.variable, name, elapsed)
+
+	`, name, prefix, strings.TrimRight(command, "\n"), suffix, elapsed, suffix, prefix, i.variable, shellName, elapsed)
 }
 
 // Footer returns the footer section for instrumentation, including a summary of execution times.
