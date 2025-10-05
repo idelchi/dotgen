@@ -186,7 +186,7 @@ commands:
 
 ### Excluding
 
-Commands can be marked to be exclude:
+Commands can be marked to be excluded with:
 
 <!-- prettier-ignore-start -->
 ```yaml
