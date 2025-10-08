@@ -1,0 +1,17 @@
+env:
+  EDITOR: nano
+
+vars:
+  project: /work/myproject
+
+commands:
+  - name: gs
+    cmd: git status
+    kind: alias
+    exclude: {{ notInPath "git" }}
+
+  - name: greet
+    kind: function
+    cmd: |
+      echo "Hello from {{ .OS }} on {{ .ARCHITECTURE }}!"
+      echo "Project at ${project}"

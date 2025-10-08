@@ -10,32 +10,64 @@ A tool to manage and render dotfiles.
 [![Build Status](https://github.com/idelchi/dotgen/actions/workflows/github-actions.yml/badge.svg)](https://github.com/idelchi/dotgen/actions/workflows/github-actions.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`dotgen` is a command-line utility for defining, templating, and exporting dotfiles.
+Stop copy-pasting shell configs between machines.
+Define your dotfiles once as YAML, template them with Go, and render them for any OS or shell.
 
-Allows for defining dotfiles as YAML, applying Go template substitution and exporting as shell-ready scripts.
+## What it does
 
-- `env` variables, rendered as `export KEY=VALUE`
-- `vars` definitions, rendered as `KEY=VALUE`
-- `alias` and `function` definitions,
-- `raw` shell snippets
-- `run` commands have render the stdout in-place or or exported to files to be sourced
+`dotgen` takes YAML files like this:
 
-Example use case is to add the following to your `.rc` file (e.g. `.zshrc`):
+<!-- prettier-ignore-start -->
+```yaml
+env:
+  EDITOR: nano
+
+vars:
+  project: /work/myproject
+
+commands:
+  - name: gs
+    cmd: git status
+    kind: alias
+    exclude: {{ notInPath "git" }}
+
+  - name: greet
+    kind: function
+    cmd: |
+      echo "Hello from {{ .OS }} on {{ .ARCHITECTURE }}!"
+      echo "Project at ${project}"
+```
+<!-- prettier-ignore-end -->
+
+And outputs shell code you can source:
 
 ```sh
-if [ ! -d "${HOME}/.cache/dotgen" ]; then
-  mkdir -p "${HOME}/.cache/dotgen"
-  dotgen -i "/path/to/configs/**/*.dotgen" --shell zsh > "${HOME}/.cache/dotgen/dotgen.rc"
-fi
+# Environment variables
+# ------------------------------------------------
+export EDITOR="nano"
+# ------------------------------------------------
 
-source "$HOME/.cache/dotgen/dotgen.rc"
+# Variables
+# ------------------------------------------------
+project="/work/myproject"
+# ------------------------------------------------
+
+# Commands
+# ------------------------------------------------
+# name: gs
+alias gs='git status'
+
+# name: greet
+greet() {
+  echo "Hello from windows on x86_64!"
+  echo "Project at ${project}"
+}
+
+# ------------------------------------------------
 ```
 
-or simply
-
-```sh
-eval "$(dotgen -i "/path/to/configs/**/*.dotgen" --shell zsh)"
-```
+Template with Go, filter by OS/shell, conditionally exclude commands,
+run setup scripts once - all from declarative config files.
 
 ## Installation
 
@@ -43,39 +75,40 @@ eval "$(dotgen -i "/path/to/configs/**/*.dotgen" --shell zsh)"
 curl -sSL https://raw.githubusercontent.com/idelchi/dotgen/refs/heads/main/install.sh | sh -s -- -d ~/.local/bin
 ```
 
-## Usage
+## Quick start
 
 ```sh
-# Run dotgen with a config file
-$ dotgen -i ~/.config/dotgen/config.dotgen --shell zsh
+# Generate and source your dotfiles
+eval "$(dotgen -i ~/.config/dotgen/**/*.dotgen --shell zsh)"
 ```
+
+Or cache the output to avoid regenerating on every shell startup:
 
 ```sh
-# Provide additional variables inline for use in templates
-$ dotgen -i config.dotgen ENABLE_FZF_FEATURES=true KEY=VALUE
+# In your .zshrc or .bashrc
+if [ ! -f "${HOME}/.cache/dotgen/dotgen.rc" ]; then
+  mkdir -p "${HOME}/.cache/dotgen"
+  dotgen -i "/path/to/configs/**/*.dotgen" --shell zsh > "${HOME}/.cache/dotgen/dotgen.rc"
+fi
+
+source "$HOME/.cache/dotgen/dotgen.rc"
 ```
 
-```sh
-# Merge extra variables from YAML value files
-$ dotgen -i config.dotgen -V values.yml
-```
+## Configuration
 
-### Configuration
-
-The configuration file consists of a header section where you can define values to be used in templates, as well
-as a global exclude condition.
-
-The second part of the file contains the environment variables, variables, and commands which
-will be parsed and exported.
-
-The header section can be omitted if not used.
+Config files are YAML with an optional header section for template variables and
+a body section for your actual dotfiles.
 
 <!-- prettier-ignore-start -->
 ```yaml
+# Header (optional) - define template variables and global excludes
 values:
   BIN_DIR: $HOME/bin
 
+exclude: {{ notInPath "git" }}
+
 ---
+# Body - your actual dotfiles
 env:
   EDITOR: nano
 
@@ -86,161 +119,182 @@ commands:
   - name: gs
     cmd: git status
     kind: alias
-    exclude: {{ notInPath "git" }}
-
-  - name: hostname
-    doc: export hostname as variable
-    kind: run
-    cmd: |
-      echo "export HOSTNAME=$(hostname -f 2>/dev/null || hostname)"
-
-  - name: zoxide integration
-    doc: zoxide shell integration
-    kind: run
-    cmd: zoxide init "{{ .SHELL }}" --cmd cd
-    export_to: {{ .CACHE_DIR }}/01-zoxide.rc
-    exclude: {{notInPath "zoxide"}}
-
-  - name: starship integration
-    doc: starship shell integration
-    kind: run
-    cmd: starship init --print-full-init "{{ .SHELL }}"
-    export_to: {{ .CACHE_DIR }}/00-starship.rc
-    exclude: {{ notInPath "starship" }}
 
   - name: greet
     kind: function
-    cmd: |
-      echo "Hello from '{{ .OS }}' on '{{ .ARCHITECTURE }}'!"
-      echo "Project base is ${project}"
-```
-
-will be rendered as:
-
-```sh
-# Environment variables
-# ------------------------------------------------
-export EDITOR="nano"
-# ------------------------------------------------
-
-# Variables
-# ------------------------------------------------
-project="/work/src/myproject"
-# ------------------------------------------------
-
-# Commands
-# ------------------------------------------------
-# name: gs
-alias gs='git status'
-
-# name: hostname
-# doc:
-#  export hostname as variable
-# original:
-#  echo "export HOSTNAME=$(hostname -f 2>/dev/null || hostname)"
-export HOSTNAME=dotgen
-
-# name: starship integration
-# doc:
-#  starship shell integration
-# original:
-#  starship init --print-full-init "zsh"
-# output exported to "/home/user/.cache/00-starship.rc"
-. "/home/user/.cache/00-starship.rc"
-
-# name: greet
-greet() {
-  echo "Hello from 'linux' on 'x86_64'!"
-  echo "Project base is ${project}"
-}
-
-# ------------------------------------------------
+    cmd: echo "Hello!"
 ```
 <!-- prettier-ignore-end -->
 
-Run with `--verbose` to embed more details in the output.
+### Command types
 
-### Command Kinds
+Four command kinds, each with different output behavior:
 
-- **alias** — Simple shell alias
-- **function** — Shell function
-- **raw** — Raw shell snippet, rendered as-is
-- **run** — Command to be executed, stdout is captured and rendered as-is or exported
+**`alias`** - Shell alias
+
+```yaml
+- name: ll
+  cmd: ls -al
+  # default, can be omitted
+  kind: alias
+```
+
+```sh
+alias ll='ls -al'
+```
+
+**`function`** - Shell function
+
+```yaml
+- name: greet
+  kind: function
+  cmd: |
+    echo "Hello $1"
+```
+
+```sh
+greet() {
+  echo "Hello $1"
+}
+```
+
+**`raw`** - Raw shell code, no wrapping
+
+```yaml
+- name: custom
+  kind: raw
+  cmd: |
+    # Direct shell code
+    if [ -f $HOME/.secrets ]; then
+      source $HOME/.secrets
+    fi
+```
+
+**`run`** - Execute command at generation time, capture stdout
+
+```yaml
+- name: zoxide
+  kind: run
+  cmd: zoxide init "{{ .SHELL }}" --cmd cd
+  export_to: {{ .CACHE_DIR }}/zoxide.rc
+```
+
+Use `run` for tool integrations (starship, zoxide, etc.) that need to execute once to generate shell code.
 
 ### Filtering
 
-Commands can be limited to specific OS or shell:
+Target specific operating systems or shells:
 
 ```yaml
 commands:
-  - name: ll
-    cmd: ls -al
+  - name: pbcopy-alias
+    cmd: xclip -selection clipboard
     kind: alias
     os:
       - linux
-      - darwin
     shell:
       - zsh
       - bash
 ```
 
-### Excluding
-
-Commands can be marked to be excluded with:
+Or use template logic to exclude conditionally:
 
 <!-- prettier-ignore-start -->
 ```yaml
 commands:
-  - name: debug
-    cmd: echo "debug only"
-    exclude: {{ eq .HOSTNAME "something" }}
+  - name: gs
+    cmd: git status
+    kind: alias
+    exclude: {{ notInPath "git" }}
 ```
 <!-- prettier-ignore-end -->
 
-`dotgen` will also skip files on the form `<name>_<os>.<extension>` if the current value of `OS` does not match `<os>`.
+Files named `config_<os>.dotgen` are automatically skipped if the OS doesn't match.
 
 ## Variables
 
-Variables are populated by default as:
+Every template has access to these built-in variables:
 
-- Platform (`OS`, `PLATFORM`, `ARCHITECTURE`, `HOSTNAME`)
-- User (`USER`, `USERNAME`, `HOME`, `CACHE_DIR`, `CONFIG_DIR`, `TMPDIR`)
-- Active shell (`SHELL`)
+**Platform**: `OS`, `PLATFORM`, `ARCHITECTURE`, `HOSTNAME`
+**User**: `USER`, `USERNAME`, `HOME`, `CACHE_DIR`, `CONFIG_DIR`, `TMPDIR`
+**Shell**: `SHELL`
+**File context**: `DOTGEN_CURRENT_FILE`, `DOTGEN_CURRENT_DIR`
 
-You can add more through:
+Add your own variables in multiple ways:
 
-- Inline args: `KEY=VALUE`
-- Value files via `-V file.yml`
-- Header section in the config file
+```sh
+# Inline
+dotgen -i config.dotgen KEY=VALUE ANOTHER=thing
 
-Merge order is:
+# From YAML files
+dotgen -i config.dotgen -V values.yml
 
-1. Default variables
-2. Header section in the config file
-3. Value files via `-V file.yml`
-4. Inline args: `KEY=VALUE`
+# In config header
+values:
+  MY_VAR: some_value
+```
+
+Variables merge in this order (last wins):
+
+1. Built-in defaults
+2. Config file header
+3. `-V` value files
+4. Command-line `KEY=VALUE` args
 
 ## Templating
 
-All config files are processed as Go templates, extended with [slim-sprig](https://go-task.github.io/slim-sprig) functions.
+All config files are processed as Go templates with [slim-sprig](https://go-task.github.io/slim-sprig)
+functions plus custom helpers:
 
-Additional custom functions:
+- `inPath "cmd"` - Check if command exists in PATH
+- `notInPath "cmd"` - Inverse of above
+- `exists "path"` - Check if file/directory exists
+- `path "cmd"` - Get full path to command
 
-- `inPath "cmd"` - Check if a command is available in PATH
-- `notInPath "cmd"` - Check if a command is not available in PATH
-- `exists "path"` - Check if a file or folder exists
+Examples:
+
+<!-- prettier-ignore-start -->
+```yaml
+commands:
+  - name: dp
+    cmd: docker ps
+    kind: alias
+    exclude: {{ notInPath "docker" }}
+
+  - name: setup
+    kind: function
+    cmd: |
+      {{ if exists "~/.secrets" }}
+      source ~/.secrets
+      {{ end }}
+```
+<!-- prettier-ignore-end -->
+
+See more examples in the [examples/](./assets/examples) folder.
 
 ## Flags
 
-- `--input`, `-i` - File paths or patterns (`doublestar`) to process
-- `--shell`, `-s` - Active shell name (default: `$SHELL` or `zsh`)
-- `--values`, `-V` - Additional YAML values to merge and use in templates
-- `--verbose` - Enable verbose logging
-- `--debug`, `-d` - Show variables and rendered templates without further processing. Implies `--verbose`
-- `--instrument`, `-I` - Instrument command execution times and show summary.
-  `$?` will not be respected between commands. Implies `--verbose`
-- `--version`, `-v` - Show version
+- `-i, --input` - File paths or glob patterns (supports `**`)
+- `-s, --shell` - Target shell (default: basename of `$SHELL`)
+- `-V, --values` - Additional YAML variable files
+- `--verbose` - Show generation details
+- `-d, --debug` - Show all variables and rendered templates without processing
+- `-I, --instrument` - Time command execution and show summary
+- `--hash` - Compute hash of all included files (useful for cache invalidation)
+- `--dry` - Show which files would be processed without executing
+- `-v, --version` - Show version
 
-## Demo
+## Use cases
 
-![Demo](assets/gifs/dotgen.gif)
+**Unified dotfiles across machines**
+Define once, render differently per OS/shell. No more `if [[ "$OSTYPE" == "darwin"* ]]` scattered everywhere.
+
+**Conditional tool integration**
+Only set up starship/zoxide/fzf if they're installed. No errors on minimal systems.
+
+**DRY shell config**
+Use variables and templates instead of hardcoded paths. Change `BIN_DIR` once, update everywhere.
+
+**Cached generation**
+Generate once on login, source the cached output. Fast shell startup without losing flexibility.
+Use `--hash` to further optimize caching by only running on config changes.
