@@ -297,6 +297,8 @@ Use variables and templates instead of hardcoded paths. Change `BIN_DIR` once, u
 
 **Cached generation**
 Generate once on login, source the cached output. Fast shell startup without losing flexibility.
-Use `--hash` to further optimize caching by only running on config changes.
+Use `--hash` to further optimize caching by only regenerating on config changes.
+
+## Demo
 
 ![Demo](assets/gifs/dotgen.gif)
