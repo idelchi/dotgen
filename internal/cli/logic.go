@@ -23,7 +23,7 @@ import (
 // on the current OS and shell, and exports the final configuration to the
 // console.
 //
-//nolint:gocognit,funlen,forbidigo // TODO(Idelchi): Refactor
+//nolint:gocognit,funlen,forbidigo,cyclop,gocyclo,maintidx // TODO(Idelchi): Refactor
 func logic(options Options, logger Logger) error {
 	if options.Debug {
 		fmt.Println("default variables:")
@@ -67,6 +67,8 @@ func logic(options Options, logger Logger) error {
 	logger.Printlnf("processing %d file(s)", len(files))
 
 	logger.Printlnf(" - processing:")
+
+	included := make(map[string]string)
 
 	for _, file := range files {
 		logger.Printlnf("  - %q", file)
@@ -146,6 +148,12 @@ func logic(options Options, logger Logger) error {
 			return fmt.Errorf("expected at most 2 documents in %q, got %d", file, len(docs))
 		}
 
+		included[file] = vars.Export()
+
+		if options.Dry || options.Hash {
+			continue
+		}
+
 		rendered, err := template.Apply(string(doc), vars)
 		if err != nil {
 			return err //nolint:wrapcheck // Error is already descriptive enough
@@ -201,6 +209,25 @@ func logic(options Options, logger Logger) error {
 
 		fmt.Println(export)
 		fmt.Println()
+	}
+
+	if options.Dry {
+		for _, file := range included {
+			fmt.Println(file)
+		}
+
+		return nil
+	}
+
+	if options.Hash {
+		hash, err := format.Hash(included)
+		if err != nil {
+			return fmt.Errorf("computing hash: %w", err)
+		}
+
+		fmt.Print(hash)
+
+		return nil
 	}
 
 	return nil

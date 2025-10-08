@@ -3,7 +3,11 @@ package format
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -79,4 +83,38 @@ func Map[T any](data map[string]T, format string) string {
 	}
 
 	return strings.Join(out, "\n")
+}
+
+// Hash deterministically combines each file's contents and its exported variables into a single SHA-256 digest.
+func Hash(included map[string]string) (string, error) {
+	if len(included) == 0 {
+		return "", errors.New("no input provided")
+	}
+
+	digests := make([]string, 0, len(included))
+
+	for name, vars := range included {
+		data, err := os.ReadFile(filepath.Clean(name))
+		if err != nil {
+			return "", fmt.Errorf("reading %q: %w", name, err)
+		}
+
+		fileHash := sha256.Sum256(data)
+		exportHash := sha256.Sum256([]byte(vars))
+
+		entry := name + "\n" +
+			hex.EncodeToString(fileHash[:]) + "\n" +
+			hex.EncodeToString(exportHash[:]) + "\n"
+
+		entryHash := sha256.Sum256([]byte(entry))
+
+		digests = append(digests, hex.EncodeToString(entryHash[:]))
+	}
+
+	sort.Strings(digests)
+
+	payload := strings.Join(digests, "\n") + "\n"
+	final := sha256.Sum256([]byte(payload))
+
+	return hex.EncodeToString(final[:]), nil
 }

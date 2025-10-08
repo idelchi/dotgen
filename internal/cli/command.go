@@ -50,28 +50,26 @@ type Options struct {
 	Debug bool
 	// Instrument represents whether instrumentation for profiling is enabled.
 	Instrument bool
+	// Hash represents whether to compute and print a hash of all included files.
+	Hash bool
+	// Dry represents whether to show which files would be included, but not execute commands.
+	Dry bool
 	// Version represents whether to show the version and exit.
 	Version bool
 }
 
 // Execute runs the CLI with the provided arguments.
 func (c CLI) Execute() error {
-	defaultShell := os.Getenv("SHELL")
-
-	if defaultShell != "" {
-		defaultShell = filepath.Base(defaultShell)
-	} else {
-		defaultShell = "zsh"
-	}
-
 	var options Options
 
 	pflag.StringSliceVarP(&options.Input, "input", "i", []string{}, "Paths or patterns to dotgen configuration files")
-	pflag.StringVarP(&options.Shell, "shell", "s", defaultShell, "The active shell")
+	pflag.StringVarP(&options.Shell, "shell", "s", filepath.Base(os.Getenv("SHELL")), "The active shell")
 	pflag.StringSliceVarP(&options.Values, "values", "V", []string{}, "Additional YAML value files")
 	pflag.BoolVar(&options.Verbose, "verbose", false, "Show verbose output")
 	pflag.BoolVarP(&options.Debug, "debug", "d", false, "Show debug output")
 	pflag.BoolVarP(&options.Instrument, "instrument", "I", false, "Enable instrumentation for profiling")
+	pflag.BoolVar(&options.Hash, "hash", false, "Compute a hash of all files that would be included and print it out")
+	pflag.BoolVar(&options.Dry, "dry", false, "Show which files would be included, but do not execute commands")
 	pflag.BoolVarP(&options.Version, "version", "v", false, "Show the version and exit")
 
 	pflag.CommandLine.SortFlags = false
@@ -83,6 +81,10 @@ func (c CLI) Execute() error {
 		fmt.Println(c.version)
 
 		return nil
+	}
+
+	if options.Shell == "." {
+		return fmt.Errorf("no shell specified, provide using --shell/-s or set SHELL environment variable")
 	}
 
 	if options.Debug || options.Instrument {
