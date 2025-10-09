@@ -1,7 +1,7 @@
 /*
 Usage:
 
-	dotgen [command] [flags]
+	dotgen [flags] [patterns ...]
 
 Use "dotgen --help" for more information.
 */

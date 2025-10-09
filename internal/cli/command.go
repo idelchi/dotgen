@@ -116,7 +116,7 @@ func (c CLI) Execute() error {
 	}
 
 	if options.Shell == "" {
-		return errors.New("no shell specified, provide using --shell or set SHELL environment variable")
+		return errors.New("no shell specified, provide using --shell SHELL environment variable")
 	}
 
 	if options.Debug || options.Instrument {
