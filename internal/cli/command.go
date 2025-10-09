@@ -24,7 +24,7 @@ func New(version string) CLI {
 }
 
 // DefaultPath is the default glob pattern for dotgen configuration files.
-const DefaultPath = "**/*.dotgen.yaml"
+const DefaultPath = "**/*.dotgen"
 
 func help() {
 	fmt.Println(heredoc.Docf(`
