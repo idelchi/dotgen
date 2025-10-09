@@ -7,8 +7,9 @@ Set Height 850
 Set TypingSpeed 75ms
 
 Set Shell bash
+Env SHELL bash
 
-Type 'dotgen -i "assets/**/*.dotgen"'
+Type 'dotgen "assets/**/project.dotgen"'
 Sleep 500ms
 Enter
 
