@@ -47,7 +47,7 @@ func logic(options Options, logger Logger) error {
 
 		logger.Printlnf("loading config %q", file)
 
-		matches, err := doublestar.Glob(fsys, pattern)
+		matches, err := doublestar.Glob(fsys, pattern, doublestar.WithFilesOnly())
 		if err != nil {
 			return fmt.Errorf("invalid config pattern %q: %w", file, err)
 		}
@@ -212,7 +212,7 @@ func logic(options Options, logger Logger) error {
 	}
 
 	if options.Dry {
-		for _, file := range included {
+		for file := range included {
 			fmt.Println(file)
 		}
 

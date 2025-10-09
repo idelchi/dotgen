@@ -10,7 +10,6 @@ A tool to manage and render dotfiles.
 [![Build Status](https://github.com/idelchi/dotgen/actions/workflows/github-actions.yml/badge.svg)](https://github.com/idelchi/dotgen/actions/workflows/github-actions.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Stop copy-pasting shell configs between machines.
 Define your dotfiles once as YAML, template them with Go, and render them for any OS or shell.
 
 ## What it does
@@ -59,7 +58,7 @@ alias gs='git status'
 
 # name: greet
 greet() {
-  echo "Hello from windows on x86_64!"
+  echo "Hello from linux on x86_64!"
   echo "Project at ${project}"
 }
 
@@ -79,16 +78,16 @@ curl -sSL https://raw.githubusercontent.com/idelchi/dotgen/refs/heads/main/insta
 
 ```sh
 # Generate and source your dotfiles
-eval "$(dotgen -i ~/.config/dotgen/**/*.dotgen --shell zsh)"
+eval "$(dotgen --shell zsh ~/.config/dotgen/**/*.dotgen)"
 ```
 
-Or cache the output to avoid regenerating on every shell startup:
+or cache the output to avoid regenerating on every shell startup:
 
 ```sh
 # In your .zshrc or .bashrc
 if [ ! -f "${HOME}/.cache/dotgen/dotgen.rc" ]; then
   mkdir -p "${HOME}/.cache/dotgen"
-  dotgen -i "/path/to/configs/**/*.dotgen" --shell zsh > "${HOME}/.cache/dotgen/dotgen.rc"
+  dotgen --shell zsh "/path/to/configs/**/*.dotgen" > "${HOME}/.cache/dotgen/dotgen.rc"
 fi
 
 source "$HOME/.cache/dotgen/dotgen.rc"
@@ -215,19 +214,19 @@ Files named `config_<os>.dotgen` are automatically skipped if the OS doesn't mat
 
 Every template has access to these built-in variables:
 
-**Platform**: `OS`, `PLATFORM`, `ARCHITECTURE`, `HOSTNAME`
-**User**: `USER`, `USERNAME`, `HOME`, `CACHE_DIR`, `CONFIG_DIR`, `TMPDIR`
-**Shell**: `SHELL`
-**File context**: `DOTGEN_CURRENT_FILE`, `DOTGEN_CURRENT_DIR`
+- **Platform**: `OS`, `PLATFORM`, `ARCHITECTURE`, `HOSTNAME`
+- **User**: `USER`, `USERNAME`, `HOME`, `CACHE_DIR`, `CONFIG_DIR`, `TMPDIR`
+- **Shell**: `SHELL`
+- **File context**: `DOTGEN_CURRENT_FILE`, `DOTGEN_CURRENT_DIR`
 
 Add your own variables in multiple ways:
 
 ```sh
 # Inline
-dotgen -i config.dotgen KEY=VALUE ANOTHER=thing
+dotgen config.dotgen --set KEY=VALUE --set ANOTHER=thing
 
 # From YAML files
-dotgen -i config.dotgen -V values.yml
+dotgen config.dotgen --values values.yml
 
 # In config header
 values:
@@ -238,8 +237,8 @@ Variables merge in this order (last wins):
 
 1. Built-in defaults
 2. Config file header
-3. `-V` value files
-4. Command-line `KEY=VALUE` args
+3. `--values` value files
+4. `--set KEY=VALUE` args
 
 ## Templating
 
@@ -272,17 +271,27 @@ commands:
 
 See more examples in the [examples/](./assets/examples) folder.
 
-## Flags
+## Usage
 
-- `-i, --input` - File paths or glob patterns (supports `**`)
-- `-s, --shell` - Target shell (default: basename of `$SHELL`)
-- `-V, --values` - Additional YAML variable files
-- `--verbose` - Show generation details
-- `-d, --debug` - Show all variables and rendered templates without processing
-- `-I, --instrument` - Time command execution and show summary
-- `--hash` - Compute hash of all included files (useful for cache invalidation)
-- `--dry` - Show which files would be processed without executing
+```sh
+dotgen [options] [patterns...]
+```
+
+- `--shell` - Target shell (default: basename of `$SHELL`)
+- `-f, --values` - Additional YAML variable files
+- `--set` - Additional `KEY=VALUE` variables, only string values supported
+- `--verbose` - Increase verbosity in rendered output
+- `--debug` - Show all variables and rendered templates without processing
+- `-I, --instrument` - Add instrumentation to rendered output to time commands
+- `--hash` - Compute hash of all included files
+- `--dry` - Show a list of files that would be processed without executing
 - `-v, --version` - Show version
+
+The positional arguments are patterns supporting globbing (`**`), with the following special cases:
+
+- when none are provided, defaults to `**/*.dotgen`
+- `.` expands to `**/*.dotgen`
+- a trailing `/` expands to `**/*.dotgen` in that directory
 
 ## Use cases
 

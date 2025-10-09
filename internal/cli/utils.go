@@ -8,8 +8,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/spf13/pflag"
-
 	"github.com/idelchi/dotgen/internal/variables"
 )
 
@@ -37,7 +35,7 @@ func mergeVars(options Options, headers variables.Variables, file string) (varia
 
 	maps.Copy(vars, values)
 
-	args, err := variables.Args(pflag.Args()).ToKeyValues()
+	args, err := variables.Args(options.Set).ToKeyValues()
 	if err != nil {
 		return nil, fmt.Errorf("parsing args: %w", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/pflag"
@@ -22,28 +23,35 @@ func New(version string) CLI {
 	return CLI{version: version}
 }
 
+// DefaultPath is the default glob pattern for dotgen configuration files.
+const DefaultPath = "**/*.dotgen.yaml"
+
 func help() {
-	fmt.Println(heredoc.Doc(`
+	fmt.Println(heredoc.Docf(`
 		dotgen is a tool to manage and execute named shell commands with Go template substitution.
 
 		Usage:
 
-			dotgen [flags] [key=value ...]
+			dotgen [flags] [patterns ...]
+
+		Positional Arguments:
+		  patterns               Paths or patterns to dotgen configuration files. Defaults to %q if not specified.
 
 		Flags:
-	`))
+	`, DefaultPath))
 	pflag.PrintDefaults()
 }
 
 // Options represents the CLI options.
 type Options struct {
-	// Input represents the input configuration files.
-	// Processed as doublestar patterns.
+	// Input represents input file paths or patterns.
 	Input []string
 	// Shell represents the active shell.
 	Shell string
 	// Values represents additional YAML value files.
 	Values []string
+	// Set represents variables to set or override (key=value).
+	Set []string
 	// Verbose represents whether verbose output is enabled.
 	Verbose bool
 	// Debug represents whether debug output is enabled.
@@ -62,11 +70,16 @@ type Options struct {
 func (c CLI) Execute() error {
 	var options Options
 
-	pflag.StringSliceVarP(&options.Input, "input", "i", []string{}, "Paths or patterns to dotgen configuration files")
-	pflag.StringVarP(&options.Shell, "shell", "s", filepath.Base(os.Getenv("SHELL")), "The active shell")
-	pflag.StringSliceVarP(&options.Values, "values", "V", []string{}, "Additional YAML value files")
+	shell := filepath.Base(os.Getenv("SHELL"))
+	if shell == "." {
+		shell = ""
+	}
+
+	pflag.StringVar(&options.Shell, "shell", shell, "The active shell")
+	pflag.StringSliceVarP(&options.Values, "values", "f", []string{}, "Additional YAML value files")
+	pflag.StringSliceVar(&options.Set, "set", []string{}, "Set or override variables (key=value), strings only")
 	pflag.BoolVar(&options.Verbose, "verbose", false, "Show verbose output")
-	pflag.BoolVarP(&options.Debug, "debug", "d", false, "Show debug output")
+	pflag.BoolVar(&options.Debug, "debug", false, "Show debug output")
 	pflag.BoolVarP(&options.Instrument, "instrument", "I", false, "Enable instrumentation for profiling")
 	pflag.BoolVar(&options.Hash, "hash", false, "Compute a hash of all files that would be included and print it out")
 	pflag.BoolVar(&options.Dry, "dry", false, "Show which files would be included, but do not execute commands")
@@ -77,13 +90,31 @@ func (c CLI) Execute() error {
 	pflag.Usage = help
 	pflag.Parse()
 
+	if pflag.NArg() == 0 {
+		options.Input = []string{DefaultPath}
+	} else {
+		options.Input = pflag.Args()
+	}
+
+	for idx, pattern := range options.Input {
+		pattern = filepath.ToSlash(pattern)
+
+		if pattern == "." {
+			pattern = DefaultPath
+		} else if strings.HasSuffix(pattern, "/") {
+			pattern = filepath.Join(pattern, DefaultPath)
+		}
+
+		options.Input[idx] = filepath.ToSlash(pattern)
+	}
+
 	if options.Version {
 		fmt.Println(c.version)
 
 		return nil
 	}
 
-	if options.Shell == "." {
+	if options.Shell == "" {
 		return fmt.Errorf("no shell specified, provide using --shell/-s or set SHELL environment variable")
 	}
 
