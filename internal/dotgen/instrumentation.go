@@ -100,7 +100,7 @@ func (i Instrumentation) Footer() string {
 		  printf '%%s\n' "${%s[@]}"
 		fi
 		echo '************************************************'
-	`, i.Name, i.variable)
+	`, i.Name, i.variable, i.variable)
 }
 
 // toShellVar converts an arbitrary string into a valid shell variable name.
