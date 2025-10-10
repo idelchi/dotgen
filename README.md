@@ -270,6 +270,7 @@ commands:
 <!-- prettier-ignore-end -->
 
 See more examples in the [examples/](./assets/examples) folder.
+More advanced use-cases can be found at [dotfiles](https://github.com/idelchi/dotfiles/tree/dev/dotgen).
 
 ## Usage
 
