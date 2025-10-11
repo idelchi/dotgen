@@ -30,6 +30,16 @@ func path(name string) string {
 	return filepath.ToSlash(path)
 }
 
+// size returns the size of the file, if it does not exist of is a folder, returns 0.
+func size(path string) int64 {
+	info, err := os.Stat(path)
+	if err != nil || info.IsDir() {
+		return 0
+	}
+
+	return info.Size()
+}
+
 // funcMap returns a map of custom template functions.
 func funcMap() map[string]any {
 	return map[string]any{
@@ -37,5 +47,6 @@ func funcMap() map[string]any {
 		"notInPath": func(name string) bool { return !inPath(name) },
 		"exists":    exists,
 		"path":      path,
+		"size":      size,
 	}
 }
