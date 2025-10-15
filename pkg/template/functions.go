@@ -51,8 +51,8 @@ func size(path string) int64 {
 	return info.Size()
 }
 
-// funcMap returns a map of custom template functions.
-func funcMap() map[string]any {
+// FuncMap returns a map of custom template functions.
+func FuncMap() map[string]any {
 	return map[string]any{
 		"inPath":    inPath,
 		"notInPath": func(name string) bool { return !inPath(name) },

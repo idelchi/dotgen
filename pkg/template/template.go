@@ -14,7 +14,7 @@ import (
 func Apply(templateString string, variables map[string]any) (string, error) {
 	template, err := template.New("cmd").
 		Funcs(sprig.FuncMap()).
-		Funcs(funcMap()).
+		Funcs(FuncMap()).
 		Option("missingkey=error").
 		Parse(templateString)
 	if err != nil {
