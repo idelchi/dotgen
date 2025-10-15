@@ -20,11 +20,22 @@ func exists(path string) bool {
 	return err == nil
 }
 
-// path returns the full path of a command if it exists in PATH, otherwise returns an empty string.
-func path(name string) string {
-	path, err := exec.LookPath(name)
-	if err != nil {
+// path returns the full path of a file by first checking if it exists in PATH;
+// if not, checks if it exists as a full path to a file;
+// otherwise returns an empty string.
+func path(paths ...string) string {
+	if len(paths) == 0 {
 		return ""
+	}
+
+	path := filepath.ToSlash(filepath.Join(paths...))
+
+	path, err := exec.LookPath(path)
+	if err != nil {
+		_, err := os.Stat(path)
+		if err != nil {
+			return ""
+		}
 	}
 
 	return filepath.ToSlash(path)

@@ -248,7 +248,8 @@ functions plus custom helpers:
 - `inPath "cmd"` - Check if command exists in PATH
 - `notInPath "cmd"` - Inverse of above
 - `exists "path"` - Check if file/directory exists
-- `path "cmd"` - Get full path to command
+- `path "cmd"` or `path "folder" "subfolder" "file"` - Get full path to a command if in PATH
+  or as a relative or absolute path to a file
 
 Examples:
 
