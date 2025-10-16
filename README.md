@@ -253,8 +253,8 @@ functions plus custom helpers:
 - `size "path"` - Get file size in bytes, 0 if not exists
 - `join "path" "to" "file"` - Join multiple path elements into a single path
 - `read "path"` - Read file content, returns an error if the file doesn't exist or can't be read
-- `posixPath "path"` - Convert Windows path (like `C:/...`) to WSL format (`/c/...`), no-op on non-Windows systems
-- `windowsPath "path"` - Convert WSL path (like `/c/...`) to Windows format (`C:/...`), no-op on non-Windows systems
+- `posixPath "path"` - Convert Windows path (like `C:/...`) to Posix format (`/c/...`), no-op on non-Windows systems
+- `windowsPath "path"` - Convert Posix path (like `/c/...`) to Windows format (`C:/...`), no-op on non-Windows systems
 
 Examples:
 
