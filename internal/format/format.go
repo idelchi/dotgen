@@ -9,18 +9,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strings"
 	"unicode"
 
 	"mvdan.cc/sh/v3/syntax"
 )
-
-// isWindows returns true if the current OS is Windows.
-func isWindows() bool {
-	return runtime.GOOS == "windows"
-}
 
 // Shell formats a shell script source code.
 func Shell(src string, singleLine bool) (string, error) {
@@ -54,48 +48,27 @@ func isAlpha(b byte) bool {
 	return unicode.IsLetter(rune(b))
 }
 
-// Path formats a file path to use forward slashes and cleans it.
-// On Windows, it also converts paths like `/c/...` to `C:/...`.
-func Path(path string) string {
-	if isWindows() {
-		if len(path) >= 3 && path[0] == '/' && path[2] == '/' && isAlpha(path[1]) {
-			drive := strings.ToUpper(path[1:2])
-
-			path = drive + ":" + path[2:]
-		}
-	}
-
-	// Convert slashes and clean.
-	path = filepath.Clean(path)
-	path = filepath.ToSlash(path)
-
-	return path
-}
-
 // WindowsPath formats a file path to use forward slashes and cleans it.
-// On Windows, it also converts paths like `/c/...` to `C:/...`.
+// Converts paths like `/c/...` to `C:/...` regardless of platform if a drive letter is detected.
 func WindowsPath(path string) string {
-	if isWindows() {
-		if len(path) >= 3 && path[0] == '/' && path[2] == '/' && isAlpha(path[1]) {
-			drive := strings.ToUpper(path[1:2])
+	path = filepath.ToSlash(path)
 
-			path = drive + ":" + path[2:]
-		}
+	if len(path) >= 3 && path[0] == '/' && path[2] == '/' && isAlpha(path[1]) {
+		drive := strings.ToUpper(path[1:2])
+
+		path = drive + ":" + path[2:]
 	}
 
-	// Convert slashes and clean.
-	path = filepath.Clean(path)
+	// Convert slashes to forward slashes.
 	path = filepath.ToSlash(path)
 
 	return path
 }
 
-// PosixPath converts a Windows path (like `C:/...`) to WSL format (`/c/...`).
-// On non-Windows systems, it returns the path unchanged.
+// PosixPath converts a Windows path (like `C:/...`) to Posix format (`/c/...`).
+// Converts regardless of platform if a drive letter is detected.
 func PosixPath(path string) string {
-	if isWindows() {
-		return path
-	}
+	path = filepath.ToSlash(path)
 
 	// Check for drive letter pattern: X:/ where X is a letter
 	if len(path) >= 3 && path[1] == ':' && path[2] == '/' && isAlpha(path[0]) {
