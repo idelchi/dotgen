@@ -17,6 +17,11 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 )
 
+// isWindows returns true if the current OS is Windows.
+func isWindows() bool {
+	return runtime.GOOS == "windows"
+}
+
 // Shell formats a shell script source code.
 func Shell(src string, singleLine bool) (string, error) {
 	file, err := syntax.NewParser(syntax.KeepComments(true)).Parse(strings.NewReader(src), "")
@@ -52,7 +57,7 @@ func isAlpha(b byte) bool {
 // Path formats a file path to use forward slashes and cleans it.
 // On Windows, it also converts paths like `/c/...` to `C:/...`.
 func Path(path string) string {
-	if runtime.GOOS == "windows" {
+	if isWindows() {
 		if len(path) >= 3 && path[0] == '/' && path[2] == '/' && isAlpha(path[1]) {
 			drive := strings.ToUpper(path[1:2])
 
@@ -62,6 +67,44 @@ func Path(path string) string {
 
 	// Convert slashes and clean.
 	path = filepath.Clean(path)
+	path = filepath.ToSlash(path)
+
+	return path
+}
+
+// WindowsPath formats a file path to use forward slashes and cleans it.
+// On Windows, it also converts paths like `/c/...` to `C:/...`.
+func WindowsPath(path string) string {
+	if isWindows() {
+		if len(path) >= 3 && path[0] == '/' && path[2] == '/' && isAlpha(path[1]) {
+			drive := strings.ToUpper(path[1:2])
+
+			path = drive + ":" + path[2:]
+		}
+	}
+
+	// Convert slashes and clean.
+	path = filepath.Clean(path)
+	path = filepath.ToSlash(path)
+
+	return path
+}
+
+// PosixPath converts a Windows path (like `C:/...`) to WSL format (`/c/...`).
+// On non-Windows systems, it returns the path unchanged.
+func PosixPath(path string) string {
+	if isWindows() {
+		return path
+	}
+
+	// Check for drive letter pattern: X:/ where X is a letter
+	if len(path) >= 3 && path[1] == ':' && path[2] == '/' && isAlpha(path[0]) {
+		drive := strings.ToLower(path[0:1])
+
+		path = "/" + drive + path[2:]
+	}
+
+	// Convert slashes to forward slashes.
 	path = filepath.ToSlash(path)
 
 	return path

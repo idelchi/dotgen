@@ -40,7 +40,7 @@ func logic(options Options, logger Logger) error {
 	files := []string{}
 
 	for _, file := range options.Input {
-		file = format.Path(file)
+		file = filepath.ToSlash(file)
 
 		base, pattern := doublestar.SplitPattern(file)
 		fsys := os.DirFS(base)

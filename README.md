@@ -248,8 +248,13 @@ functions plus custom helpers:
 - `inPath "cmd"` - Check if command exists in PATH
 - `notInPath "cmd"` - Inverse of above
 - `exists "path"` - Check if file/directory exists
-- `path "cmd"` or `path "folder" "subfolder" "file"` - Get full path to a command if in PATH
-  or as a relative or absolute path to a file
+- `which "cmd"` - Get full path to a command if in PATH, empty string if not found
+- `resolve "path"` - Resolve a relative or absolute path to its full path, empty
+- `size "path"` - Get file size in bytes, 0 if not exists
+- `join "path" "to" "file"` - Join multiple path elements into a single path
+- `read "path"` - Read file content, returns an error if the file doesn't exist or can't be read
+- `posixPath "path"` - Convert Windows path (like `C:/...`) to WSL format (`/c/...`), no-op on non-Windows systems
+- `windowsPath "path"` - Convert WSL path (like `/c/...`) to Windows format (`C:/...`), no-op on non-Windows systems
 
 Examples:
 

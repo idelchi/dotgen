@@ -4,6 +4,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/idelchi/dotgen/internal/format"
 )
 
 // inPath checks whether a command is available in PATH.
@@ -20,25 +22,31 @@ func exists(path string) bool {
 	return err == nil
 }
 
-// path returns the full path of a file by first checking if it exists in PATH;
-// if not, checks if it exists as a full path to a file;
+// which returns the full path of an executable if it exists in PATH,
 // otherwise returns an empty string.
-func path(paths ...string) string {
+func which(name string) string {
+	path, err := exec.LookPath(name)
+	if err != nil {
+		return ""
+	}
+
+	return filepath.ToSlash(path)
+}
+
+// resolve returns the full path of a file if it exists,
+// otherwise returns an empty string.
+func resolve(paths ...string) string {
 	if len(paths) == 0 {
 		return ""
 	}
 
 	path := filepath.ToSlash(filepath.Join(paths...))
 
-	path, err := exec.LookPath(path)
-	if err != nil {
-		_, err := os.Stat(path)
-		if err != nil {
-			return ""
-		}
+	if _, err := os.Stat(path); err != nil {
+		return ""
 	}
 
-	return filepath.ToSlash(path)
+	return path
 }
 
 // size returns the size of the file, if it does not exist of is a folder, returns 0.
@@ -51,13 +59,45 @@ func size(path string) int64 {
 	return info.Size()
 }
 
+// join joins multiple path elements into a single path.
+func join(paths ...string) string {
+	return filepath.ToSlash(filepath.Join(paths...))
+}
+
+// read attempts to read the file at the location and returns its content as a string.
+func read(path string) (string, error) {
+	data, err := os.ReadFile(filepath.Clean(path))
+	if err != nil {
+		return "", err //nolint:wrapcheck	// Error is already descriptive enough
+	}
+
+	return string(data), nil
+}
+
+// posixPath converts a Windows path (like `C:/...`) to WSL format (`/c/...`).
+// On non-Windows systems, it returns the path unchanged.
+func posixPath(path string) string {
+	return format.PosixPath(path)
+}
+
+// windowsPath converts a Windows path (like `C:/...`) to WSL format (`/c/...`).
+// On non-Windows systems, it returns the path unchanged.
+func windowsPath(path string) string {
+	return format.WindowsPath(path)
+}
+
 // FuncMap returns a map of custom template functions.
 func FuncMap() map[string]any {
 	return map[string]any{
-		"inPath":    inPath,
-		"notInPath": func(name string) bool { return !inPath(name) },
-		"exists":    exists,
-		"path":      path,
-		"size":      size,
+		"inPath":      inPath,
+		"notInPath":   func(name string) bool { return !inPath(name) },
+		"exists":      exists,
+		"which":       which,
+		"resolve":     resolve,
+		"size":        size,
+		"join":        join,
+		"read":        read,
+		"posixPath":   posixPath,
+		"windowsPath": windowsPath,
 	}
 }
