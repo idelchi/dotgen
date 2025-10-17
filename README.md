@@ -214,7 +214,7 @@ Files named `config_<os>.dotgen` are automatically skipped if the OS doesn't mat
 
 Every template has access to these built-in variables:
 
-- **Platform**: `OS`, `PLATFORM`, `ARCHITECTURE`, `HOSTNAME`
+- **Platform**: `OS`, `PLATFORM`, `ARCHITECTURE`, `EXTENSION`, `HOSTNAME`
 - **User**: `USER`, `USERNAME`, `HOME`, `CACHE_DIR`, `CONFIG_DIR`, `TMPDIR`
 - **Shell**: `SHELL`
 - **File context**: `DOTGEN_CURRENT_FILE`, `DOTGEN_CURRENT_DIR`

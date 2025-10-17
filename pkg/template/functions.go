@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	"github.com/idelchi/dotgen/internal/format"
 )
@@ -24,7 +25,24 @@ func exists(path string) bool {
 
 // which returns the full path of an executable if it exists in PATH,
 // otherwise returns an empty string.
+// It temporarily disables the "NoDefaultCurrentDirectoryInExePath" environment
+// variable to ensure the current directory is included in the search on Windows.
 func which(name string) string {
+	if runtime.GOOS == "windows" {
+		original, ok := os.LookupEnv("NoDefaultCurrentDirectoryInExePath")
+
+		_ = os.Setenv("NoDefaultCurrentDirectoryInExePath", "0")
+
+		// Set it back to original value
+		defer func() {
+			if ok {
+				_ = os.Setenv("NoDefaultCurrentDirectoryInExePath", original)
+			} else {
+				_ = os.Unsetenv("NoDefaultCurrentDirectoryInExePath")
+			}
+		}()
+	}
+
 	path, err := exec.LookPath(name)
 	if err != nil {
 		return ""
