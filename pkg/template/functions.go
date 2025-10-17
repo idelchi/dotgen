@@ -9,25 +9,9 @@ import (
 	"github.com/idelchi/dotgen/internal/format"
 )
 
-// inPath checks whether a command is available in PATH.
-func inPath(name string) bool {
-	_, err := exec.LookPath(name)
-
-	return err == nil
-}
-
-// exists checks whether a file or directory exists at the given path.
-func exists(path string) bool {
-	_, err := os.Stat(path)
-
-	return err == nil
-}
-
-// which returns the full path of an executable if it exists in PATH,
-// otherwise returns an empty string.
-// It temporarily disables the "NoDefaultCurrentDirectoryInExePath" environment
-// variable to ensure the current directory is included in the search on Windows.
-func which(name string) string {
+// _which returns the full path of an executable if it exists in PATH,
+// otherwise returns an empty string along with an error.
+func _which(name string) (string, error) {
 	if runtime.GOOS == "windows" {
 		original, ok := os.LookupEnv("NoDefaultCurrentDirectoryInExePath")
 
@@ -45,10 +29,42 @@ func which(name string) string {
 
 	path, err := exec.LookPath(name)
 	if err != nil {
+		return "", err //nolint:wrapcheck	// Error is already descriptive enough
+	}
+
+	return filepath.ToSlash(path), nil
+}
+
+// which returns the full path of an executable if it exists in PATH,
+// otherwise returns an empty string.
+func which(name string) string {
+	path, err := _which(name)
+	if err != nil {
 		return ""
 	}
 
-	return filepath.ToSlash(path)
+	return path
+}
+
+// inPath checks whether a command is available in PATH.
+func inPath(name string) bool {
+	_, err := _which(name)
+
+	return err == nil
+}
+
+// notInPath checks whether a command is not available in PATH.
+func notInPath(name string) bool {
+	_, err := _which(name)
+
+	return err != nil
+}
+
+// exists checks whether a file or directory exists at the given path.
+func exists(path string) bool {
+	_, err := os.Stat(path)
+
+	return err == nil
 }
 
 // resolve returns the full path of a file if it exists,
@@ -108,7 +124,7 @@ func windowsPath(path string) string {
 func FuncMap() map[string]any {
 	return map[string]any{
 		"inPath":      inPath,
-		"notInPath":   func(name string) bool { return !inPath(name) },
+		"notInPath":   notInPath,
 		"exists":      exists,
 		"which":       which,
 		"resolve":     resolve,
