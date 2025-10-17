@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
 
@@ -192,12 +193,14 @@ func logic(options Options, logger Logger) error {
 		if options.Verbose {
 			// Build the line first
 			line := fmt.Sprintf("# Generated from %q", file)
+			date := fmt.Sprintf("# Date: %s", time.Now().Format(time.RFC3339))
 
 			// Repeat stars to the length of the line
 			stars := strings.Repeat("*", len(line))
 
 			fmt.Println("# " + stars)
 			fmt.Println(line)
+			fmt.Println(date)
 			fmt.Println("# " + stars)
 
 			fmt.Println("# Template variables:")
