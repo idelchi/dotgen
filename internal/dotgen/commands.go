@@ -43,6 +43,7 @@ func (c *Command) Export(shell string) (string, error) {
 	case "alias":
 		var builder strings.Builder
 		fmt.Fprintf(&builder, "# name: %s\n", name)
+		fmt.Fprintf(&builder, "# kind: %s\n", c.Kind)
 
 		if c.Doc != "" {
 			fmt.Fprint(&builder, "# doc:\n")
@@ -64,6 +65,7 @@ func (c *Command) Export(shell string) (string, error) {
 		var builder strings.Builder
 
 		fmt.Fprintf(&builder, "# name: %s\n", name)
+		fmt.Fprintf(&builder, "# kind: %s\n", c.Kind)
 
 		if c.Doc != "" {
 			fmt.Fprint(&builder, "# doc:\n")
@@ -86,6 +88,7 @@ func (c *Command) Export(shell string) (string, error) {
 		var builder strings.Builder
 
 		fmt.Fprintf(&builder, "# name: %s\n", name)
+		fmt.Fprintf(&builder, "# kind: %s\n", c.Kind)
 
 		if c.Doc != "" {
 			fmt.Fprint(&builder, "# doc:\n")
@@ -116,6 +119,7 @@ func (c *Command) Export(shell string) (string, error) {
 		var builder strings.Builder
 
 		fmt.Fprintf(&builder, "# name: %s\n", name)
+		fmt.Fprintf(&builder, "# kind: %s\n", c.Kind)
 
 		if c.Doc != "" {
 			fmt.Fprintf(&builder, "# doc:\n")
@@ -127,7 +131,12 @@ func (c *Command) Export(shell string) (string, error) {
 		fmt.Fprint(&builder, "# original:\n")
 		fmt.Fprintf(&builder, "#  %s\n", cmd)
 
-		if c.ExportTo != "" {
+		switch c.ExportTo {
+		case "/dev/null":
+			builder.WriteString("# output discarded\n")
+		case "":
+			builder.WriteString(result.Stdout)
+		default:
 			exportTo := os.ExpandEnv(c.ExportTo)
 			fmt.Fprintf(&builder, "# output exported to %q\n", exportTo)
 			fmt.Fprintf(&builder, ". %q\n", exportTo)
@@ -139,12 +148,9 @@ func (c *Command) Export(shell string) (string, error) {
 			if err := os.WriteFile(exportTo, []byte(result.Stdout), 0o600); err != nil {
 				return "", fmt.Errorf("writing output to %q: %w", exportTo, err)
 			}
-		} else {
-			builder.WriteString(result.Stdout)
 		}
 
 		return builder.String(), nil
-
 	default:
 		return "", fmt.Errorf("# unknown kind %q for command %q", c.Kind, c.Name)
 	}

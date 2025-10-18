@@ -180,6 +180,12 @@ greet() {
 
 Use `run` for tool integrations (starship, zoxide, etc.) that need to execute once to generate shell code.
 
+`export_to` takes three possible values:
+
+- `""`, `null` or omitted: stdout (inserted in place)
+- `path`: writes output to that file, and inserts a `. <path>` line instead
+- `/dev/null`: discarded. Allows for just performing some operations without outputting anything.
+
 ### Filtering
 
 Target specific operating systems or shells:
@@ -253,6 +259,7 @@ functions plus custom helpers:
 - `size "path"` - Get file size in bytes, 0 if not exists
 - `join "path" "to" "file"` - Join multiple path elements into a single path
 - `read "path"` - Read file content, returns an error if the file doesn't exist or can't be read
+- `copy "src" "dst"` - Copy file from src to dst, returns an error if the operation fails
 - `posixPath "path"` - Convert Windows path (like `C:/...` or `C:\...`) to Posix format (`/c/...`)
 - `windowsPath "path"` - Convert Posix path (like `/c/...`) to Windows format (`C:/...`)
 
@@ -275,8 +282,9 @@ commands:
 ```
 <!-- prettier-ignore-end -->
 
-See more examples in the [examples/](./assets/examples) folder.
-More advanced use-cases can be found at [dotfiles](https://github.com/idelchi/dotfiles/tree/dev/dotgen).
+Examples of various use-cases can be found at [dotfiles](https://github.com/idelchi/dotfiles/tree/main/dotgen).
+
+Since the complete `dotgen` file is templated, one can run arbitrary templated logic anywhere in the file.
 
 ## Usage
 

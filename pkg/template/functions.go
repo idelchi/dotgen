@@ -92,6 +92,25 @@ func read(path string) (string, error) {
 	return string(data), nil
 }
 
+// copy copies a file from src to dst, creating the destination directory if needed.
+// Returns an error if the source doesn't exist, isn't a regular file, or if the copy fails.
+func copyFile(src, dst string) (string, error) {
+	data, err := os.ReadFile(filepath.Clean(src))
+	if err != nil {
+		return "", err //nolint:wrapcheck	// Error is already descriptive enough
+	}
+
+	if err := os.MkdirAll(filepath.Dir(dst), 0o750); err != nil {
+		return "", err //nolint:wrapcheck	// Error is already descriptive enough
+	}
+
+	if err := os.WriteFile(filepath.Clean(dst), data, 0o600); err != nil {
+		return "", err //nolint:wrapcheck	// Error is already descriptive enough
+	}
+
+	return "", nil
+}
+
 // posixPath converts a Windows path (like `C:/...`) to WSL format (`/c/...`).
 // On non-Windows systems, it returns the path unchanged.
 func posixPath(path string) string {
@@ -115,6 +134,7 @@ func FuncMap() map[string]any {
 		"size":        size,
 		"join":        join,
 		"read":        read,
+		"copy":        copyFile,
 		"posixPath":   posixPath,
 		"windowsPath": windowsPath,
 	}
