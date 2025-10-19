@@ -1,8 +1,9 @@
 values:
-  BIN_DIR: $HOME/bin
+  BIN_DIR: ${HOME}/bin
 
 ---
 env:
+  PATH: "{{ .BIN_DIR }}:${PATH}"
   EDITOR: nano
 
 vars:

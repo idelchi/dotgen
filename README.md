@@ -90,7 +90,7 @@ if [ ! -f "${HOME}/.cache/dotgen/dotgen.rc" ]; then
   dotgen --shell zsh "/path/to/configs/**/*.dotgen" > "${HOME}/.cache/dotgen/dotgen.rc"
 fi
 
-source "$HOME/.cache/dotgen/dotgen.rc"
+source "${HOME}/.cache/dotgen/dotgen.rc"
 ```
 
 ## Configuration
@@ -102,13 +102,14 @@ a body section for your actual dotfiles.
 ```yaml
 # Header (optional) - define template variables and global excludes
 values:
-  BIN_DIR: $HOME/bin
+  BIN_DIR: ${HOME}/bin
 
 exclude: {{ notInPath "git" }}
 
 ---
 # Body - your actual dotfiles
 env:
+  PATH: "{{ .BIN_DIR }}:${PATH}"
   EDITOR: nano
 
 vars:
@@ -164,8 +165,8 @@ greet() {
   kind: raw
   cmd: |
     # Direct shell code
-    if [ -f $HOME/.secrets ]; then
-      source $HOME/.secrets
+    if [ -f ${HOME}/.rc ]; then
+      source ${HOME}/.rc
     fi
 ```
 
@@ -281,9 +282,9 @@ commands:
 ```
 <!-- prettier-ignore-end -->
 
-Examples of various use-cases can be found at [dotfiles](https://github.com/idelchi/dotfiles/tree/main/dotgen).
-
 Since the entire file is rendered, templates may be used anywhere.
+
+Examples of various use-cases can be found at [dotfiles](https://github.com/idelchi/dotfiles/tree/main/dotgen).
 
 ## Usage
 
@@ -291,7 +292,7 @@ Since the entire file is rendered, templates may be used anywhere.
 dotgen [options] [patterns...]
 ```
 
-- `--shell` - Target shell (default: basename of `$SHELL`)
+- `--shell` - Target shell (default: basename of `SHELL` environment variable)
 - `-f, --values` - Additional YAML variable files
 - `--set` - Additional `KEY=VALUE` variables, only string values supported
 - `--verbose` - Increase verbosity in rendered output
@@ -310,7 +311,7 @@ The positional arguments are patterns supporting globbing (`**`), with the follo
 ## Use cases
 
 **Unified dotfiles across machines**
-Define once, render differently per OS/shell. No more `if [[ "$OSTYPE" == "darwin"* ]]` scattered everywhere.
+Define once, render differently per OS/shell.
 
 **Conditional tool integration**
 Only set up starship/zoxide/fzf if they're installed. No errors on minimal systems.
