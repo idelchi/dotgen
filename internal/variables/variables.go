@@ -99,7 +99,7 @@ func Defaults(shell, file string) Variables {
 	variables["EXTENSION"] = ""
 
 	if runtime.GOOS == "windows" {
-		variables["EXTENSION"] = "exe"
+		variables["EXTENSION"] = ".exe"
 	}
 
 	return variables
