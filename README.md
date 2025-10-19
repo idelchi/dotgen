@@ -255,9 +255,9 @@ functions plus custom helpers:
 - `notInPath "cmd"` - Inverse of above
 - `exists "path"` - Check if file/directory exists
 - `which "cmd"` - Get full path to a command if in PATH, empty string if not found
-- `resolve "path"` - Resolve a relative or absolute path to its full path, empty
+- `resolve "paths"...` - Joins multiple path elements and returns the full path if it exists, empty string otherwise.
 - `size "path"` - Get file size in bytes, 0 if not exists
-- `join "path" "to" "file"` - Join multiple path elements into a single path
+- `join "paths"...` - Join multiple path elements into a single path
 - `read "path"` - Read file content, returns an error if the file doesn't exist or can't be read
 - `posixPath "path"` - Convert Windows path (like `C:/...` or `C:\...`) to Posix format (`/c/...`)
 - `windowsPath "path"` - Convert Posix path (like `/c/...`) to Windows format (`C:/...`)
@@ -273,10 +273,10 @@ commands:
     exclude: {{ notInPath "docker" }}
 
   - name: setup
-    kind: function
+    kind: raw
     cmd: |
-      {{ if exists "~/.secrets" }}
-      source ~/.secrets
+      {{- if (join (env "HOME") ".rc" | exists) }}
+      source {{ join (env "HOME") ".rc" }}
       {{ end }}
 ```
 <!-- prettier-ignore-end -->

@@ -51,7 +51,7 @@ func exists(path string) bool {
 	return err == nil
 }
 
-// resolve returns the full path of a file if it exists,
+// resolve returns the full path of a file or directory if it exists,
 // otherwise returns an empty string.
 func resolve(paths ...string) string {
 	if len(paths) == 0 {
@@ -92,14 +92,12 @@ func read(path string) (string, error) {
 	return string(data), nil
 }
 
-// posixPath converts a Windows path (like `C:/...`) to WSL format (`/c/...`).
-// On non-Windows systems, it returns the path unchanged.
+// posixPath converts a Windows path (like `C:/...`) to Posix format (`/c/...`).
 func posixPath(path string) string {
 	return format.PosixPath(path)
 }
 
-// windowsPath converts a Windows path (like `C:/...`) to WSL format (`/c/...`).
-// On non-Windows systems, it returns the path unchanged.
+// windowsPath converts a Posix path (like `/c/...`) to Windows format (`C:/...`).
 func windowsPath(path string) string {
 	return format.WindowsPath(path)
 }

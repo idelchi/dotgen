@@ -48,8 +48,8 @@ func isAlpha(b byte) bool {
 	return unicode.IsLetter(rune(b))
 }
 
-// WindowsPath formats a file path to use forward slashes and cleans it.
-// Converts paths like `/c/...` to `C:/...` regardless of platform if a drive letter is detected.
+// WindowsPath converts a Posix path (like `/c/...`) to Windows format (`C:/...`).
+// Converts regardless of platform if a drive letter is detected.
 func WindowsPath(path string) string {
 	path = filepath.ToSlash(path)
 
