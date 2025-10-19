@@ -100,10 +100,16 @@ func (c CLI) Execute() error {
 	for idx, pattern := range options.Input {
 		pattern = filepath.ToSlash(pattern)
 
-		if pattern == "." {
+		switch {
+		case pattern == ".":
 			pattern = DefaultPath
-		} else if strings.HasSuffix(pattern, "/") {
+		case strings.HasSuffix(pattern, "/"):
 			pattern = filepath.Join(pattern, DefaultPath)
+		default:
+			info, err := os.Stat(pattern)
+			if err == nil && info.IsDir() {
+				pattern = filepath.Join(pattern, DefaultPath)
+			}
 		}
 
 		options.Input[idx] = filepath.ToSlash(pattern)

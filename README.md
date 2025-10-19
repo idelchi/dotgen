@@ -284,6 +284,8 @@ commands:
 
 Since the entire file is rendered, templates may be used anywhere.
 
+All paths are rendered and returned with forward slashes (`/`), even on Windows.
+
 Examples of various use-cases can be found at [dotfiles](https://github.com/idelchi/dotfiles/tree/main/dotgen).
 
 ## Usage
@@ -307,6 +309,7 @@ The positional arguments are patterns supporting globbing (`**`), with the follo
 - when none are provided, defaults to `**/*.dotgen`
 - `.` expands to `**/*.dotgen`
 - a trailing `/` expands to `**/*.dotgen` in that directory
+- if a directory is provided, it expands to `**/*.dotgen` in that directory
 
 ## Use cases
 
