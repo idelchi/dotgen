@@ -256,12 +256,13 @@ functions plus custom helpers:
 - `notInPath "cmd"` - Inverse of above
 - `exists "path"` - Check if file/directory exists
 - `which "cmd"` - Get full path to a command if in PATH, empty string if not found
-- `resolve "paths"...` - Joins multiple path elements and returns the full path if it exists, empty string otherwise.
-- `size "path"` - Get file size in bytes, 0 if not exists
+- `resolve "paths"...` - Joins multiple path elements and returns the full path if it exists, empty string otherwise
+- `size "path"` - Get file size in bytes, 0 if missing
 - `join "paths"...` - Join multiple path elements into a single path
 - `read "path"` - Read file content, returns an error if the file doesn't exist or can't be read
 - `posixPath "path"` - Convert Windows path (like `C:/...` or `C:\...`) to Posix format (`/c/...`)
 - `windowsPath "path"` - Convert Posix path (like `/c/...`) to Windows format (`C:/...`)
+- `mustEnv "KEY"` - Return the value of an environment variable, or an error if not set
 
 Examples:
 

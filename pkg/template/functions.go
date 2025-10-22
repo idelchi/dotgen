@@ -1,6 +1,7 @@
 package template
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -102,6 +103,17 @@ func windowsPath(path string) string {
 	return format.WindowsPath(path)
 }
 
+// mustEnv returns the value of the environment variable named by the key.
+// It returns an empty string and an error if the variable is not set.
+func mustEnv(key string) (string, error) {
+	value, ok := os.LookupEnv(key)
+	if !ok {
+		return "", fmt.Errorf("environment variable %q is not set", key)
+	}
+
+	return value, nil
+}
+
 // FuncMap returns a map of custom template functions.
 func FuncMap() map[string]any {
 	return map[string]any{
@@ -115,5 +127,6 @@ func FuncMap() map[string]any {
 		"read":        read,
 		"posixPath":   posixPath,
 		"windowsPath": windowsPath,
+		"mustEnv":     mustEnv,
 	}
 }
