@@ -1,9 +1,9 @@
 Output assets/gifs/dotgen.gif
 
-Set Theme "iTerm2 Default"
-Set FontSize 14
+Set Theme "CLRS"
+Set FontSize 16
 Set Width 900
-Set Height 950
+Set Height 1100
 Set TypingSpeed 75ms
 
 Set Shell bash
