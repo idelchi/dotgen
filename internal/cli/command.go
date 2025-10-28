@@ -1,3 +1,4 @@
+// Package cli implements the command-line interface for dotgen.
 package cli
 
 import (
