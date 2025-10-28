@@ -23,7 +23,7 @@ type Result struct {
 }
 
 // Run executes the given shell command snippet using the specified shell.
-func Run(shell, snippet string) *Result {
+func Run(shell, snippet string, timeout time.Duration) *Result {
 	if strings.TrimSpace(shell) == "" {
 		return &Result{
 			ExitCode: -1,
@@ -31,8 +31,7 @@ func Run(shell, snippet string) *Result {
 		}
 	}
 
-	// Hard-coded 1m timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, shell, "-c", snippet)

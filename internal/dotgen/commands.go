@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/idelchi/dotgen/internal/format"
 	"github.com/idelchi/dotgen/pkg/exec"
@@ -29,6 +30,30 @@ type Command struct {
 	OS []string `yaml:"os,omitempty"`
 	// Exclude specifies whether to exclude this command from the output.
 	Exclude bool `yaml:"exclude,omitempty"`
+	// Timeout specifies the timeout for "run" commands.
+	Timeout string `yaml:"timeout,omitempty"`
+}
+
+// parseTimeout parses a timeout string into a time.Duration.
+// If the timeout string is empty, it defaults to 1 minute.
+func parseTimeout(timeout string) (time.Duration, error) {
+	timeout = strings.TrimSpace(timeout)
+
+	// Default to 1 minute if not specified
+	if timeout == "" {
+		return 1 * time.Minute, nil
+	}
+
+	duration, err := time.ParseDuration(timeout)
+	if err != nil {
+		return 0, fmt.Errorf(
+			"invalid timeout format %q (expected Go duration format like \"30s\", \"5m\", \"1h30m\"): %w",
+			timeout,
+			err,
+		)
+	}
+
+	return duration, nil
 }
 
 // Export returns a string representation of the command, suitable for shell usage.
@@ -107,9 +132,15 @@ func (c *Command) Export(shell string) (string, error) {
 		return raw, nil
 
 	case "run":
+		timeout, err := parseTimeout(c.Timeout)
+		if err != nil {
+			return "", fmt.Errorf("parsing timeout for command %q: %w", name, err)
+		}
+
 		result := exec.Run(
 			shell,
 			cmd,
+			timeout,
 		)
 
 		if result.Err != nil {
