@@ -307,6 +307,7 @@ dotgen [options] [patterns...]
 - `--hash` - Compute hash of all included files
 - `--dry` - Show a list of files that would be processed without executing
 - `-v, --version` - Show version
+- `--shell-completion` - Generate shell completion script for specified shell (bash, zsh, fish, powershell)
 
 The positional arguments are patterns supporting globbing (`**`), with the following special cases:
 
