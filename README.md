@@ -177,6 +177,7 @@ greet() {
   kind: run
   cmd: zoxide init "{{ .SHELL }}" --cmd cd
   export_to: {{ .CACHE_DIR }}/zoxide.rc
+  timeout: 30s
 ```
 
 Use `run` for tool integrations (starship, zoxide, etc.) that need to execute once to generate shell code.
@@ -186,6 +187,8 @@ Use `run` for tool integrations (starship, zoxide, etc.) that need to execute on
 - `""`, `null` or omitted: stdout (inserted in place)
 - `path`: writes output to that file, and inserts a `. <path>` line instead
 - `/dev/null`: discarded. Allows for just performing some operations without outputting anything.
+
+`timeout` accepts Go duration format (e.g., `30s`, `5m`, `1h30m`). Defaults to `1m` if not specified.
 
 ### Filtering
 

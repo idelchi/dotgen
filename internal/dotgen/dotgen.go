@@ -104,7 +104,7 @@ func (a Dotgen) Export(shell, file string, instrument bool) (string, error) {
 
 			command, err := c.Export(shell)
 			if err != nil {
-				return "", fmt.Errorf("exporting command %q: %w", name, err)
+				return "", err
 			}
 
 			buf.WriteString(instrumentation.Wrap(name, command))

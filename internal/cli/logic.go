@@ -187,7 +187,7 @@ func logic(options Options, logger Logger) error {
 
 		export, err := dotgen.Export(options.Shell, file, options.Instrument)
 		if err != nil {
-			return fmt.Errorf("exporting dotgen config: %w", err)
+			return err //nolint:wrapcheck // Error is already descriptive enough
 		}
 
 		if options.Verbose {
