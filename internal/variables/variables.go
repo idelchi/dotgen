@@ -92,7 +92,7 @@ func Defaults(shell, file string) Variables {
 
 	variables["CONFIG_DIR"] = filepath.ToSlash(filepath.Join(home, ".config"))
 	variables["CACHE_DIR"] = filepath.ToSlash(filepath.Join(home, ".cache"))
-	variables["TMPDIR"] = filepath.ToSlash(os.TempDir())
+	variables["TMP_DIR"] = filepath.ToSlash(os.TempDir())
 
 	variables["SHELL"] = shell
 
@@ -101,6 +101,16 @@ func Defaults(shell, file string) Variables {
 	if runtime.GOOS == "windows" {
 		variables["EXTENSION"] = ".exe"
 	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		cwd, err = filepath.Abs(".")
+		if err != nil {
+			cwd = "."
+		}
+	}
+
+	variables["CWD"] = filepath.ToSlash(cwd)
 
 	return variables
 }

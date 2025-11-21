@@ -61,6 +61,9 @@ func (c CLI) Execute() error {
 		shell = ""
 	}
 
+	// Trim the executable suffix from the shell name
+	shell = strings.TrimSuffix(shell, filepath.Ext(shell))
+
 	root := &cobra.Command{
 		Use:   "dotgen [flags] [patterns ...]",
 		Short: "Manage and execute named shell commands with Go template substitution",
