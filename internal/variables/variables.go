@@ -102,6 +102,11 @@ func Defaults(shell, file string) Variables {
 		variables["EXTENSION"] = ".exe"
 	}
 
+	return variables
+}
+
+// AppendCwd appends the current working directory to the variables under the "CWD" key.
+func (v *Variables) AppendCwd() {
 	cwd, err := os.Getwd()
 	if err != nil {
 		cwd, err = filepath.Abs(".")
@@ -110,9 +115,7 @@ func Defaults(shell, file string) Variables {
 		}
 	}
 
-	variables["CWD"] = filepath.ToSlash(cwd)
-
-	return variables
+	(*v)["CWD"] = filepath.ToSlash(cwd)
 }
 
 // Args represents a list of key=value strings.

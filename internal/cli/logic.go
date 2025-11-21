@@ -155,6 +155,8 @@ func logic(options Options, logger Logger) error {
 			continue
 		}
 
+		vars.AppendCwd()
+
 		rendered, err := template.Apply(string(doc), vars)
 		if err != nil {
 			return err //nolint:wrapcheck // Error is already descriptive enough
