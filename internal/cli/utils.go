@@ -45,9 +45,9 @@ func mergeVars(options Options, headers variables.Variables, file string) (varia
 	return vars, nil
 }
 
-// getOSExtensionFromFileName checks if the file name ends with _<os> before the extension.
-// It returns the OS if found, otherwise an empty string.
-func getOSExtensionFromFileName(file string) string {
+// getPlatformSuffixFromFileName checks if the file name ends with _<platform> before the extension.
+// It returns the platform suffix if found, otherwise an empty string.
+func getPlatformSuffixFromFileName(file string) string {
 	base := filepath.Base(file)
 	ext := filepath.Ext(base)
 	name := strings.TrimSuffix(base, ext)
@@ -59,12 +59,39 @@ func getOSExtensionFromFileName(file string) string {
 		return ""
 	}
 
-	osPart := parts[len(parts)-1]
-	knownOS := []string{"linux", "darwin", "windows", "freebsd", "openbsd", "netbsd", "dragonfly", "solaris", "aix"}
+	platform := parts[len(parts)-1]
+	knownPlatforms := []string{
+		"linux",
+		"darwin",
+		"windows",
+		"freebsd",
+		"openbsd",
+		"netbsd",
+		"dragonfly",
+		"solaris",
+		"aix",
+		"wsl",
+	}
 
-	if slices.Contains(knownOS, osPart) {
-		return osPart
+	if slices.Contains(knownPlatforms, platform) {
+		return platform
 	}
 
 	return ""
+}
+
+// activePlatformSuffixes returns the filename suffixes that match the current platform.
+func activePlatformSuffixes(operatingSystem string) []string {
+	platforms := []string{operatingSystem}
+
+	if variables.IsWSL() {
+		platforms = append(platforms, "wsl")
+	}
+
+	return platforms
+}
+
+// platformSuffixMatches checks whether a filename suffix applies to the current platform.
+func platformSuffixMatches(suffix, operatingSystem string) bool {
+	return suffix == "" || slices.Contains(activePlatformSuffixes(operatingSystem), suffix)
 }

@@ -5,10 +5,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
-	"strings"
 
 	"github.com/idelchi/dotgen/internal/format"
+	"github.com/idelchi/dotgen/internal/variables"
 )
 
 // _which returns the full path of an executable if it exists in PATH,
@@ -49,26 +48,7 @@ func notInPath(name string) bool {
 
 // isWSL reports whether dotgen is running under Windows Subsystem for Linux.
 func isWSL() bool {
-	if runtime.GOOS != "linux" {
-		return false
-	}
-
-	for _, path := range []string{
-		"/proc/sys/kernel/osrelease",
-		"/proc/version",
-	} {
-		data, err := os.ReadFile(path) //nolint:gosec // Path is selected from a hardcoded list.
-		if err != nil {
-			continue
-		}
-
-		s := strings.ToLower(string(data))
-		if strings.Contains(s, "microsoft") || strings.Contains(s, "wsl") {
-			return true
-		}
-	}
-
-	return false
+	return variables.IsWSL()
 }
 
 // exists checks whether a file or directory exists at the given path.

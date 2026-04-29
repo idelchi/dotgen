@@ -218,7 +218,9 @@ commands:
 ```
 <!-- prettier-ignore-end -->
 
-Files named `config_<os>.dotgen` are automatically skipped if the OS doesn't match.
+Files named `<name>_<os>.dotgen` are automatically skipped if the OS doesn't match.
+Files named `<name>_wsl.dotgen` are included only under Windows Subsystem for Linux.
+On WSL, both `_linux` and `_wsl` suffixes match.
 
 ## Variables
 

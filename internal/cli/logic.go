@@ -79,13 +79,17 @@ func logic(options Options, logger Logger) error {
 			return err
 		}
 
-		operatingSystem := getOSExtensionFromFileName(file)
+		currentOS, ok := vars["OS"].(string)
+		if !ok {
+			return fmt.Errorf("expected string for OS, got %T", vars["OS"])
+		}
 
-		if operatingSystem != "" && operatingSystem != vars["OS"] {
+		platformSuffix := getPlatformSuffixFromFileName(file)
+		if !platformSuffixMatches(platformSuffix, currentOS) {
 			logger.Printlnf(
-				"    - skipping due to file suffix OS exclusion: file is for %q, current OS is %q",
-				operatingSystem,
-				vars["OS"],
+				"    - skipping due to file suffix platform exclusion: file is for %q, current platform suffixes are %v",
+				platformSuffix,
+				activePlatformSuffixes(currentOS),
 			)
 
 			continue
@@ -180,12 +184,7 @@ func logic(options Options, logger Logger) error {
 			return err //nolint:wrapcheck // Error is already descriptive enough.
 		}
 
-		os, ok := vars["OS"].(string)
-		if !ok {
-			return fmt.Errorf("expected string for OS, got %T", vars["OS"])
-		}
-
-		dotgen = dotgen.Filtered(os, options.Shell)
+		dotgen = dotgen.Filtered(currentOS, options.Shell)
 
 		export, err := dotgen.Export(options.Shell, file, options.Instrument)
 		if err != nil {
