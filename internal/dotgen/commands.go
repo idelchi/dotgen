@@ -58,7 +58,7 @@ func parseTimeout(timeout string) (time.Duration, error) {
 
 // Export returns a string representation of the command, suitable for shell usage.
 //
-//nolint:gocognit,funlen // TODO(Idelchi): Refactor
+//nolint:gocognit,funlen // TODO(Idelchi): Refactor.
 func (c *Command) Export(shell string) (string, error) {
 	name := strings.TrimSpace(c.Name)
 	cmd := strings.TrimSpace(c.Cmd)

@@ -18,7 +18,7 @@ func Apply(templateString string, variables map[string]any) (string, error) {
 		Option("missingkey=error").
 		Parse(templateString)
 	if err != nil {
-		return "", err //nolint:wrapcheck // Error is already descriptive enough
+		return "", err //nolint:wrapcheck // Error is already descriptive enough.
 	}
 
 	// Execute the template with variables

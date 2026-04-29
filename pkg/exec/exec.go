@@ -34,7 +34,12 @@ func Run(shell, snippet string, timeout time.Duration) *Result {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, shell, "-c", snippet)
+	cmd := exec.CommandContext( //nolint:gosec // Shell and snippet are user-authored dotgen config.
+		ctx,
+		shell,
+		"-c",
+		snippet,
+	)
 
 	var outBuf, errBuf bytes.Buffer
 

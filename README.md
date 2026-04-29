@@ -257,6 +257,7 @@ functions plus custom helpers:
 
 - `inPath "cmd"` - Check if command exists in PATH
 - `notInPath "cmd"` - Inverse of above
+- `isWSL` - Check if running under Windows Subsystem for Linux
 - `exists "path"` - Check if file/directory exists
 - `which "cmd"` - Get full path to a command if in PATH, empty string if not found
 - `resolve "paths"...` - Joins multiple path elements and returns the full path if it exists, empty string otherwise

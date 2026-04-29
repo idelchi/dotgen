@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strings"
 
 	"github.com/idelchi/dotgen/internal/format"
 )
@@ -14,7 +16,7 @@ import (
 func _which(name string) (string, error) {
 	path, err := exec.LookPath(name)
 	if err != nil {
-		return "", err //nolint:wrapcheck	// Error is already descriptive enough
+		return "", err //nolint:wrapcheck	// Error is already descriptive enough.
 	}
 
 	return filepath.ToSlash(path), nil
@@ -43,6 +45,30 @@ func notInPath(name string) bool {
 	_, err := _which(name)
 
 	return err != nil
+}
+
+// isWSL reports whether dotgen is running under Windows Subsystem for Linux.
+func isWSL() bool {
+	if runtime.GOOS != "linux" {
+		return false
+	}
+
+	for _, path := range []string{
+		"/proc/sys/kernel/osrelease",
+		"/proc/version",
+	} {
+		data, err := os.ReadFile(path) //nolint:gosec // Path is selected from a hardcoded list.
+		if err != nil {
+			continue
+		}
+
+		s := strings.ToLower(string(data))
+		if strings.Contains(s, "microsoft") || strings.Contains(s, "wsl") {
+			return true
+		}
+	}
+
+	return false
 }
 
 // exists checks whether a file or directory exists at the given path.
@@ -87,7 +113,7 @@ func join(paths ...string) string {
 func read(path string) (string, error) {
 	data, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
-		return "", err //nolint:wrapcheck	// Error is already descriptive enough
+		return "", err //nolint:wrapcheck	// Error is already descriptive enough.
 	}
 
 	return string(data), nil
@@ -119,6 +145,7 @@ func FuncMap() map[string]any {
 	return map[string]any{
 		"inPath":      inPath,
 		"notInPath":   notInPath,
+		"isWSL":       isWSL,
 		"exists":      exists,
 		"which":       which,
 		"resolve":     resolve,

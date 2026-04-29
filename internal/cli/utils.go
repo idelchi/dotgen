@@ -30,7 +30,7 @@ func mergeVars(options Options, headers variables.Variables, file string) (varia
 
 	values, err := variables.Values(options.Values).Variables()
 	if err != nil {
-		return nil, err //nolint:wrapcheck // Error is already descriptive enough
+		return nil, err //nolint:wrapcheck // Error is already descriptive enough.
 	}
 
 	maps.Copy(vars, values)

@@ -24,7 +24,7 @@ import (
 // on the current OS and shell, and exports the final configuration to the
 // console.
 //
-//nolint:gocognit,funlen,forbidigo,cyclop,gocyclo,maintidx // TODO(Idelchi): Refactor
+//nolint:gocognit,funlen,forbidigo,cyclop,gocyclo,maintidx // TODO(Idelchi): Refactor.
 func logic(options Options, logger Logger) error {
 	if options.Debug {
 		fmt.Println("default variables:")
@@ -110,7 +110,7 @@ func logic(options Options, logger Logger) error {
 		case maxDocs:
 			rendered, err := template.Apply(string(docs[0]), vars)
 			if err != nil {
-				return err //nolint:wrapcheck // Error is already descriptive enough
+				return err //nolint:wrapcheck // Error is already descriptive enough.
 			}
 
 			if options.Debug {
@@ -159,7 +159,7 @@ func logic(options Options, logger Logger) error {
 
 		rendered, err := template.Apply(string(doc), vars)
 		if err != nil {
-			return err //nolint:wrapcheck // Error is already descriptive enough
+			return err //nolint:wrapcheck // Error is already descriptive enough.
 		}
 
 		if options.Debug {
@@ -173,11 +173,11 @@ func logic(options Options, logger Logger) error {
 
 		dotgen, err := dotgen.New([]byte(rendered))
 		if err != nil {
-			return err //nolint:wrapcheck // Error is already descriptive enough
+			return err //nolint:wrapcheck // Error is already descriptive enough.
 		}
 
 		if err := dotgen.Validate(); err != nil {
-			return err //nolint:wrapcheck // Error is already descriptive enough
+			return err //nolint:wrapcheck // Error is already descriptive enough.
 		}
 
 		os, ok := vars["OS"].(string)
@@ -189,7 +189,7 @@ func logic(options Options, logger Logger) error {
 
 		export, err := dotgen.Export(options.Shell, file, options.Instrument)
 		if err != nil {
-			return err //nolint:wrapcheck // Error is already descriptive enough
+			return err //nolint:wrapcheck // Error is already descriptive enough.
 		}
 
 		if options.Verbose {
