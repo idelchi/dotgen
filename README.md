@@ -229,7 +229,7 @@ In Docker on WSL, `_linux` and `_docker` suffixes match, but `_wsl` does not.
 Every template has access to these built-in variables:
 
 - **Platform**: `OS`, `PLATFORM`, `ARCHITECTURE`, `EXTENSION`, `HOSTNAME`
-- **User**: `USER`, `USERNAME`, `HOME`, `CACHE_DIR`, `CONFIG_DIR`, `TMP_DIR`
+- **User**: `USER`, `HOME`, `CACHE_DIR`, `CONFIG_DIR`, `TMP_DIR`
 - **Shell**: `SHELL`
 - **File context**: `DOTGEN_CURRENT_FILE`, `DOTGEN_CURRENT_DIR`, `CWD`
 

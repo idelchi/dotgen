@@ -70,16 +70,16 @@ func Defaults(shell, file string) Variables {
 	}
 
 	variables["USER"] = os.Getenv("USER")
-	variables["USERNAME"] = os.Getenv("USERNAME")
 	variables["HOME"] = filepath.ToSlash(os.Getenv("HOME"))
 
 	if usr, err := user.Current(); err == nil {
 		if variables["USER"] == "" {
-			variables["USER"] = usr.Name
-		}
+			name := usr.Username
+			if i := strings.LastIndex(name, `\`); i >= 0 {
+				name = name[i+1:]
+			}
 
-		if variables["USERNAME"] == "" {
-			variables["USERNAME"] = usr.Username
+			variables["USER"] = name
 		}
 
 		if variables["HOME"] == "" {
