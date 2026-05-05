@@ -23,6 +23,7 @@ func Apply(templateString string, variables map[string]any) (string, error) {
 
 	// Execute the template with variables
 	var buffer bytes.Buffer
+
 	if err := template.Execute(&buffer, variables); err != nil {
 		return "", errToMissingKey(err)
 	}

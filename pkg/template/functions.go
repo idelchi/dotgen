@@ -51,6 +51,11 @@ func isWSL() bool {
 	return variables.IsWSL()
 }
 
+// isDocker reports whether dotgen is running inside a Docker container.
+func isDocker() bool {
+	return variables.IsDocker()
+}
+
 // exists checks whether a file or directory exists at the given path.
 func exists(path string) bool {
 	_, err := os.Stat(path)
@@ -126,6 +131,7 @@ func FuncMap() map[string]any {
 		"inPath":      inPath,
 		"notInPath":   notInPath,
 		"isWSL":       isWSL,
+		"isDocker":    isDocker,
 		"exists":      exists,
 		"which":       which,
 		"resolve":     resolve,

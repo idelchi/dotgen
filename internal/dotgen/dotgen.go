@@ -39,7 +39,7 @@ func (a Dotgen) Validate() error {
 
 	for i, command := range a.Commands {
 		if command.Kind == "" {
-			a.Commands[i].Kind = "alias"
+			a.Commands[i].Kind = Alias
 		} else if !slices.Contains(Kinds, command.Kind) {
 			errs = append(
 				errs,

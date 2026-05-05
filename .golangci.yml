@@ -11,6 +11,7 @@ linters:
     - noinlineerr
     # Deprecated
     - wsl
+    - gomodguard
     # Occasional dynamic errors are fine
     - err113
     # Too noisy

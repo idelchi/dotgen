@@ -8,7 +8,7 @@ import (
 
 // IsWSL reports whether dotgen is running under Windows Subsystem for Linux.
 func IsWSL() bool {
-	if runtime.GOOS != "linux" {
+	if runtime.GOOS != "linux" || IsDocker() {
 		return false
 	}
 

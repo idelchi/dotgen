@@ -65,8 +65,9 @@ func (c *Command) Export(shell string) (string, error) {
 	doc := strings.ReplaceAll(strings.TrimSpace(c.Doc), "\n", "\n#  ")
 
 	switch c.Kind {
-	case "alias":
+	case Alias:
 		var builder strings.Builder
+
 		fmt.Fprintf(&builder, "# name: %s\n", name)
 		fmt.Fprintf(&builder, "# kind: %s\n", c.Kind)
 
@@ -84,7 +85,7 @@ func (c *Command) Export(shell string) (string, error) {
 		fmt.Fprint(&builder, "\n")
 
 		return builder.String(), nil
-	case "function":
+	case Function:
 		function := fmt.Sprintf("%s() {\n%s\n}\n", name, cmd)
 
 		var builder strings.Builder
@@ -107,7 +108,7 @@ func (c *Command) Export(shell string) (string, error) {
 		}
 
 		return function, nil
-	case "raw":
+	case Raw:
 		raw := c.Cmd
 
 		var builder strings.Builder
@@ -131,7 +132,7 @@ func (c *Command) Export(shell string) (string, error) {
 
 		return raw, nil
 
-	case "run":
+	case Run:
 		timeout, err := parseTimeout(c.Timeout)
 		if err != nil {
 			return "", fmt.Errorf("parsing timeout for command %q: %w", name, err)

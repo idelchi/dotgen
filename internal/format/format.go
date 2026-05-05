@@ -36,6 +36,7 @@ func Shell(src string, singleLine bool) (string, error) {
 	printer := syntax.NewPrinter(options...)
 
 	var buf bytes.Buffer
+
 	if err := printer.Print(&buf, file); err != nil {
 		return "", err //nolint:wrapcheck	// TODO(Idelchi): Inspect if we want to wrap this error.
 	}

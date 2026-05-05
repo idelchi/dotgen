@@ -55,6 +55,7 @@ func getPlatformSuffixFromFileName(file string) string {
 	parts := strings.Split(name, "_")
 
 	const expectedParts = 2
+
 	if len(parts) < expectedParts {
 		return ""
 	}
@@ -71,6 +72,7 @@ func getPlatformSuffixFromFileName(file string) string {
 		"solaris",
 		"aix",
 		"wsl",
+		"docker",
 	}
 
 	if slices.Contains(knownPlatforms, platform) {
@@ -86,6 +88,10 @@ func activePlatformSuffixes(operatingSystem string) []string {
 
 	if variables.IsWSL() {
 		platforms = append(platforms, "wsl")
+	}
+
+	if variables.IsDocker() {
+		platforms = append(platforms, "docker")
 	}
 
 	return platforms

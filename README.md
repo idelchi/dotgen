@@ -220,7 +220,9 @@ commands:
 
 Files named `<name>_<os>.dotgen` are automatically skipped if the OS doesn't match.
 Files named `<name>_wsl.dotgen` are included only under Windows Subsystem for Linux.
+Files named `<name>_docker.dotgen` are included only inside Docker containers.
 On WSL, both `_linux` and `_wsl` suffixes match.
+In Docker on WSL, `_linux` and `_docker` suffixes match, but `_wsl` does not.
 
 ## Variables
 
@@ -260,6 +262,7 @@ functions plus custom helpers:
 - `inPath "cmd"` - Check if command exists in PATH
 - `notInPath "cmd"` - Inverse of above
 - `isWSL` - Check if running under Windows Subsystem for Linux
+- `isDocker` - Check if running inside a Docker container
 - `exists "path"` - Check if file/directory exists
 - `which "cmd"` - Get full path to a command if in PATH, empty string if not found
 - `resolve "paths"...` - Joins multiple path elements and returns the full path if it exists, empty string otherwise
