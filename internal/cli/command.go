@@ -24,6 +24,9 @@ func New(version string) CLI {
 // DefaultPath is the default glob pattern for dotgen configuration files.
 const DefaultPath = "**/*.dotgen"
 
+// DefaultEnvFilePath is the default glob pattern for dotenv files.
+const DefaultEnvFilePath = "**/*.env"
+
 // Options represents the CLI options.
 type Options struct {
 	// Input represents input file paths or patterns.
@@ -32,6 +35,8 @@ type Options struct {
 	Shell string
 	// Values represents additional YAML value files.
 	Values []string
+	// EnvFiles represents environment files to load before rendering.
+	EnvFiles []string
 	// Set represents variables to set or override (key=value).
 	Set []string
 	// Verbose represents whether verbose output is enabled.
@@ -49,8 +54,6 @@ type Options struct {
 }
 
 // Execute runs the CLI with the provided arguments.
-//
-//nolint:gocognit // Lengthy command setup.
 func (c CLI) Execute() error {
 	var options Options
 
@@ -87,23 +90,8 @@ func (c CLI) Execute() error {
 				options.Input = args
 			}
 
-			for idx, pattern := range options.Input {
-				pattern = filepath.ToSlash(pattern)
-
-				switch {
-				case pattern == ".":
-					pattern = DefaultPath
-				case strings.HasSuffix(pattern, "/"):
-					pattern = filepath.Join(pattern, DefaultPath)
-				default:
-					info, err := os.Stat(pattern)
-					if err == nil && info.IsDir() {
-						pattern = filepath.Join(pattern, DefaultPath)
-					}
-				}
-
-				options.Input[idx] = filepath.ToSlash(pattern)
-			}
+			options.Input = normalizePatterns(options.Input, DefaultPath)
+			options.EnvFiles = normalizePatterns(options.EnvFiles, DefaultEnvFilePath)
 
 			if options.Shell == "" {
 				return errors.New("no shell specified, provide using --shell or SHELL environment variable")
@@ -121,6 +109,7 @@ func (c CLI) Execute() error {
 
 	root.Flags().StringVar(&options.Shell, "shell", shell, "The active shell")
 	root.Flags().StringSliceVarP(&options.Values, "values", "f", []string{}, "Additional YAML value files")
+	root.Flags().StringSliceVar(&options.EnvFiles, "env-file", []string{}, "Environment files to load before rendering")
 	root.Flags().
 		StringSliceVar(&options.Set, "set", []string{}, "Set or override variables (key=value), strings only")
 	root.Flags().BoolVar(&options.Verbose, "verbose", false, "Show verbose output")

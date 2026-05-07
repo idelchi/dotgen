@@ -3,12 +3,11 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
-	"strings"
-	"time"
 
-	"github.com/bmatcuk/doublestar/v4"
+	"github.com/joho/godotenv"
 
 	"github.com/idelchi/dotgen/internal/dotgen"
 	"github.com/idelchi/dotgen/internal/format"
@@ -24,7 +23,7 @@ import (
 // on the current OS and shell, and exports the final configuration to the
 // console.
 //
-//nolint:gocognit,funlen,forbidigo,cyclop,gocyclo,maintidx // TODO(Idelchi): Refactor.
+//nolint:gocognit,funlen,forbidigo,cyclop,gocyclo,maintidx,nestif // TODO(Idelchi): Refactor.
 func logic(options Options, logger Logger) error {
 	if options.Debug {
 		fmt.Println("default variables:")
@@ -38,27 +37,85 @@ func logic(options Options, logger Logger) error {
 		return errors.New("no input file provided, specify using --input/-i")
 	}
 
-	files := []string{}
+	envFiles, err := expandFiles("env file", options.EnvFiles, logger)
+	if err != nil {
+		return err
+	}
 
-	for _, file := range options.Input {
-		file = filepath.ToSlash(file)
+	if len(options.EnvFiles) > 0 && len(envFiles) == 0 {
+		return fmt.Errorf("no env files matched the provided patterns: %v", options.EnvFiles)
+	}
 
-		base, pattern := doublestar.SplitPattern(file)
-		fsys := os.DirFS(base)
+	envFromFiles := dotgen.Env{}
+	activeEnvFiles := []string{}
 
-		logger.Printlnf("loading config %q", file)
-
-		matches, err := doublestar.Glob(fsys, pattern, doublestar.WithFilesOnly())
+	if len(envFiles) > 0 {
+		vars, err := mergeVars(options, nil, "")
 		if err != nil {
-			return fmt.Errorf("invalid config pattern %q: %w", file, err)
+			return err
 		}
 
-		logger.Printlnf(" - found %d file(s) for pattern %q", len(matches), file)
-
-		for _, file := range matches {
-			file = filepath.ToSlash(filepath.Join(base, file))
-			files = append(files, file)
+		currentOS, ok := vars["OS"].(string)
+		if !ok {
+			return fmt.Errorf("expected string for OS, got %T", vars["OS"])
 		}
+
+		logger.Printlnf("processing %d env file(s)", len(envFiles))
+		logger.Printlnf(" - processing:")
+
+		for _, file := range envFiles {
+			logger.Printlnf("  - %q", file)
+
+			platformSuffix := getPlatformSuffixFromFileName(file)
+			if !platformSuffixMatches(platformSuffix, currentOS) {
+				logger.Printlnf(
+					"    - skipping due to file suffix platform exclusion: file is for %q, current platform suffixes are %v",
+					platformSuffix,
+					activePlatformSuffixes(currentOS),
+				)
+
+				continue
+			}
+
+			activeEnvFiles = append(activeEnvFiles, file)
+		}
+
+		if len(activeEnvFiles) > 0 {
+			for _, file := range activeEnvFiles {
+				vars, err := mergeVars(options, nil, file)
+				if err != nil {
+					return err
+				}
+
+				data, err := os.ReadFile(filepath.Clean(file))
+				if err != nil {
+					return fmt.Errorf("loading env file: %w", err)
+				}
+
+				rendered, err := template.Apply(string(data), vars)
+				if err != nil {
+					return err //nolint:wrapcheck // Error is already descriptive enough.
+				}
+
+				env, err := godotenv.Unmarshal(rendered)
+				if err != nil {
+					return fmt.Errorf("parsing env file %q: %w", file, err)
+				}
+
+				maps.Copy(envFromFiles, env)
+			}
+
+			for key, value := range envFromFiles {
+				if err := os.Setenv(key, value); err != nil {
+					return fmt.Errorf("setting env %q: %w", key, err)
+				}
+			}
+		}
+	}
+
+	files, err := expandFiles("config", options.Input, logger)
+	if err != nil {
+		return err
 	}
 
 	if len(files) == 0 {
@@ -70,6 +127,28 @@ func logic(options Options, logger Logger) error {
 	logger.Printlnf(" - processing:")
 
 	included := make(map[string]string)
+
+	for _, file := range activeEnvFiles {
+		included[file] = envFromFiles.Export()
+	}
+
+	if len(envFromFiles) > 0 && !options.Dry && !options.Hash && !options.Debug {
+		export, err := dotgen.Dotgen{Env: envFromFiles}.Export(options.Shell, "env files", false)
+		if err != nil {
+			return err //nolint:wrapcheck // Error is already descriptive enough.
+		}
+
+		if options.Verbose {
+			printVerboseBlock(
+				formatSources(activeEnvFiles),
+				"Environment variables",
+				format.Map(envFromFiles, "# %s=%q"),
+			)
+		}
+
+		fmt.Println(export)
+		fmt.Println()
+	}
 
 	for _, file := range files {
 		logger.Printlnf("  - %q", file)
@@ -192,23 +271,7 @@ func logic(options Options, logger Logger) error {
 		}
 
 		if options.Verbose {
-			// Build the line first
-			line := fmt.Sprintf("# Generated from %q", file)
-			date := fmt.Sprintf("# Date: %s", time.Now().Format(time.RFC3339))
-
-			// Repeat stars to the length of the line
-			stars := strings.Repeat("*", len(line))
-
-			fmt.Println("# " + stars)
-			fmt.Println(line)
-			fmt.Println(date)
-			fmt.Println("# " + stars)
-
-			fmt.Println("# Template variables:")
-			fmt.Println("# " + stars)
-			fmt.Println(format.Map(vars, "# %s=%q"))
-			fmt.Println("# " + stars)
-			fmt.Println()
+			printVerboseBlock(formatSources([]string{file}), "Template variables", format.Map(vars, "# %s=%q"))
 		}
 
 		fmt.Println(export)

@@ -242,6 +242,9 @@ dotgen config.dotgen --set KEY=VALUE --set ANOTHER=thing
 # From YAML files
 dotgen config.dotgen --values values.yml
 
+# From dotenv files
+dotgen config.dotgen --env-file .env --env-file "env/*.env"
+
 # In config header
 values:
   MY_VAR: some_value
@@ -253,6 +256,12 @@ Variables merge in this order (last wins):
 2. Config file header
 3. `--values` value files
 4. `--set KEY=VALUE` args
+
+Environment files passed with `--env-file` are loaded before rendering, so template functions such as `env` and `mustEnv`
+can read them. Their values are also emitted as exported environment variables in the generated shell output.
+Paths support the same directory expansion, doublestar globbing, platform suffix matching, and templating as dotgen files.
+Env-file templates are rendered before imported env values are applied, so `env` and `mustEnv` read the process
+environment rather than values from other `--env-file` files.
 
 ## Templating
 
@@ -272,6 +281,7 @@ functions plus custom helpers:
 - `posixPath "path"` - Convert Windows path (like `C:/...` or `C:\...`) to Posix format (`/c/...`)
 - `windowsPath "path"` - Convert Posix path (like `/c/...`) to Windows format (`C:/...`)
 - `mustEnv "KEY"` - Return the value of an environment variable, or an error if not set
+- `envIsSet "KEY"` - Check whether an environment variable is set, even if empty
 
 Examples:
 
@@ -306,6 +316,7 @@ dotgen [options] [patterns...]
 
 - `--shell` - Target shell (default: basename of `SHELL` environment variable)
 - `-f, --values` - Additional YAML variable files
+- `--env-file` - Dotenv files to load before rendering
 - `--set` - Additional `KEY=VALUE` variables, only string values supported
 - `--verbose` - Increase verbosity in rendered output
 - `--debug` - Show all variables and rendered templates without processing

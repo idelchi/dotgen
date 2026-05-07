@@ -6,6 +6,7 @@ require (
 	github.com/MakeNowJust/heredoc/v2 v2.0.1
 	github.com/bmatcuk/doublestar/v4 v4.9.1
 	github.com/go-task/slim-sprig/v3 v3.0.0
+	github.com/joho/godotenv v1.5.1
 	github.com/shirou/gopsutil/v4 v4.25.10
 	github.com/spf13/cobra v1.10.1
 	go.yaml.in/yaml/v4 v4.0.0-rc.3

@@ -4,9 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
+
+	"github.com/bmatcuk/doublestar/v4"
 
 	"github.com/idelchi/dotgen/internal/variables"
 )
@@ -43,6 +47,89 @@ func mergeVars(options Options, headers variables.Variables, file string) (varia
 	maps.Copy(vars, args)
 
 	return vars, nil
+}
+
+// normalizePatterns expands directory-like patterns to use the given default path.
+// It returns forward-slash-normalized patterns.
+func normalizePatterns(patterns []string, defaultPath string) []string {
+	for idx, pattern := range patterns {
+		pattern = filepath.ToSlash(pattern)
+
+		switch {
+		case pattern == ".":
+			pattern = defaultPath
+		case strings.HasSuffix(pattern, "/"):
+			pattern = filepath.Join(pattern, defaultPath)
+		default:
+			info, err := os.Stat(pattern)
+			if err == nil && info.IsDir() {
+				pattern = filepath.Join(pattern, defaultPath)
+			}
+		}
+
+		patterns[idx] = filepath.ToSlash(pattern)
+	}
+
+	return patterns
+}
+
+// expandFiles expands glob patterns into file paths.
+// It returns forward-slash-normalized paths for files matching the provided patterns.
+func expandFiles(kind string, patterns []string, logger Logger) ([]string, error) {
+	files := []string{}
+
+	for _, file := range patterns {
+		file = filepath.ToSlash(file)
+
+		base, pattern := doublestar.SplitPattern(file)
+		fsys := os.DirFS(base)
+
+		logger.Printlnf("loading %s %q", kind, file)
+
+		matches, err := doublestar.Glob(fsys, pattern, doublestar.WithFilesOnly())
+		if err != nil {
+			return nil, fmt.Errorf("invalid %s pattern %q: %w", kind, file, err)
+		}
+
+		logger.Printlnf(" - found %d file(s) for pattern %q", len(matches), file)
+
+		for _, file := range matches {
+			file = filepath.ToSlash(filepath.Join(base, file))
+			files = append(files, file)
+		}
+	}
+
+	return files, nil
+}
+
+// formatSources formats file paths for a generated source comment.
+func formatSources(files []string) string {
+	sources := make([]string, 0, len(files))
+	for _, file := range files {
+		sources = append(sources, fmt.Sprintf("%q", file))
+	}
+
+	return strings.Join(sources, ", ")
+}
+
+// printVerboseBlock prints the verbose generated output header and metadata block.
+//
+//nolint:forbidigo // Function needs to print to the console directly.
+func printVerboseBlock(source, label, values string) {
+	line := fmt.Sprintf("# Generated from %s", source)
+	date := fmt.Sprintf("# Date: %s", time.Now().Format(time.RFC3339))
+	stars := strings.Repeat("*", len(line))
+
+	fmt.Println("# " + stars)
+	fmt.Println(line)
+	fmt.Println(date)
+	fmt.Println("# " + stars)
+
+	fmt.Printf("# %s:\n", label)
+	fmt.Println("# " + stars)
+	fmt.Println(values)
+	fmt.Println("# " + stars)
+	fmt.Println()
 }
 
 // getPlatformSuffixFromFileName checks if the file name ends with _<platform> before the extension.

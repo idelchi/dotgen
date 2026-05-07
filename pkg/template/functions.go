@@ -125,6 +125,13 @@ func mustEnv(key string) (string, error) {
 	return value, nil
 }
 
+// envIsSet reports whether the environment variable named by the key is set.
+func envIsSet(key string) bool {
+	_, ok := os.LookupEnv(key)
+
+	return ok
+}
+
 // FuncMap returns a map of custom template functions.
 func FuncMap() map[string]any {
 	return map[string]any{
@@ -141,5 +148,6 @@ func FuncMap() map[string]any {
 		"posixPath":   posixPath,
 		"windowsPath": windowsPath,
 		"mustEnv":     mustEnv,
+		"envIsSet":    envIsSet,
 	}
 }
