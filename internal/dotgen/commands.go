@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/idelchi/dotgen/internal/exclusion"
 	"github.com/idelchi/dotgen/internal/format"
 	"github.com/idelchi/dotgen/pkg/exec"
 )
@@ -29,7 +30,7 @@ type Command struct {
 	// OS specifies the operating systems for which this command is applicable.
 	OS []string `yaml:"os,omitempty"`
 	// Exclude specifies whether to exclude this command from the output.
-	Exclude bool `yaml:"exclude,omitempty"`
+	Exclude exclusion.Exclude `yaml:"exclude,omitempty"`
 	// Timeout specifies the timeout for "run" commands.
 	Timeout string `yaml:"timeout,omitempty"`
 }
@@ -190,7 +191,7 @@ func (c *Command) Export(shell string) (string, error) {
 
 // IsExcluded checks if the command should be excluded based on the provided OS and shell.
 func (c *Command) IsExcluded(os, shell string) bool {
-	if c.Exclude {
+	if c.Exclude.IsExcluded() {
 		return true
 	}
 

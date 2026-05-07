@@ -209,7 +209,7 @@ func logic(options Options, logger Logger) error {
 				return fmt.Errorf("parsing header in %q: %w", file, err)
 			}
 
-			if header.Exclude {
+			if header.Exclude.IsExcluded() {
 				logger.Printlnf("    - skipping due to header exclusion")
 
 				continue

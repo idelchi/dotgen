@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/idelchi/dotgen/internal/exclusion"
+
 	"go.yaml.in/yaml/v4"
 )
 
@@ -14,7 +16,7 @@ type Header struct {
 	// Values contains predefined variables to use for templating.
 	Values Variables `yaml:"values,omitempty"`
 	// Exclude indicates whether this file should be excluded from processing.
-	Exclude bool `yaml:"exclude,omitempty"`
+	Exclude exclusion.Exclude `yaml:"exclude,omitempty"`
 }
 
 // NewHeader parses the header from the given data.

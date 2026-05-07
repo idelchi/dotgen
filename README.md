@@ -104,7 +104,10 @@ a body section for your actual dotfiles.
 values:
   BIN_DIR: ${HOME}/bin
 
-exclude: {{ notInPath "git" }}
+# Multiple exclude conditions are OR'ed together
+exclude:
+  - {{ notInPath "git" }}
+  - {{ notInPath "gh" }}
 
 ---
 # Body - your actual dotfiles
@@ -215,6 +218,13 @@ commands:
     cmd: git status
     kind: alias
     exclude: {{ notInPath "git" }}
+
+  - name: gp
+    cmd: git push
+    kind: alias
+    exclude:
+      - {{ notInPath "git" }}
+      - {{ notInPath "gh" }}
 ```
 <!-- prettier-ignore-end -->
 
