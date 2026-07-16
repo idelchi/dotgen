@@ -45,6 +45,8 @@ type Options struct {
 	Debug bool
 	// Instrument represents whether instrumentation for profiling is enabled.
 	Instrument bool
+	// Parallel represents how many command exports may run at the same time.
+	Parallel int
 	// Hash represents whether to compute and print a hash of all included files.
 	Hash bool
 	// Dry represents whether to show which files would be included, but not execute commands.
@@ -97,6 +99,10 @@ func (c CLI) Execute() error {
 				return errors.New("no shell specified, provide using --shell or SHELL environment variable")
 			}
 
+			if options.Parallel < 1 {
+				return errors.New("parallel must be at least 1")
+			}
+
 			if options.Debug || options.Instrument {
 				options.Verbose = true
 			}
@@ -115,6 +121,9 @@ func (c CLI) Execute() error {
 	root.Flags().BoolVar(&options.Verbose, "verbose", false, "Show verbose output")
 	root.Flags().BoolVar(&options.Debug, "debug", false, "Show debug output")
 	root.Flags().BoolVarP(&options.Instrument, "instrument", "I", false, "Enable instrumentation for profiling")
+	root.Flags().
+		IntVarP(&options.Parallel, "parallel", "j", 1,
+			"Number of concurrent command exports (1 disables parallelism)")
 	root.Flags().
 		BoolVar(&options.Hash, "hash", false, "Compute a hash of all files that would be included and print it out")
 	root.Flags().

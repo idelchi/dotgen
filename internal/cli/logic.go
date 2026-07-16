@@ -133,7 +133,7 @@ func logic(options Options, logger Logger) error {
 	}
 
 	if len(envFromFiles) > 0 && !options.Dry && !options.Hash && !options.Debug {
-		export, err := dotgen.Dotgen{Env: envFromFiles}.Export(options.Shell, "env files", false)
+		export, err := dotgen.Dotgen{Env: envFromFiles}.Export(options.Shell, "env files", false, 1)
 		if err != nil {
 			return err //nolint:wrapcheck // Error is already descriptive enough.
 		}
@@ -265,7 +265,7 @@ func logic(options Options, logger Logger) error {
 
 		dotgen = dotgen.Filtered(currentOS, options.Shell)
 
-		export, err := dotgen.Export(options.Shell, file, options.Instrument)
+		export, err := dotgen.Export(options.Shell, file, options.Instrument, options.Parallel)
 		if err != nil {
 			return err //nolint:wrapcheck // Error is already descriptive enough.
 		}

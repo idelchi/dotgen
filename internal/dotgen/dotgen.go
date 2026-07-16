@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 
 	"go.yaml.in/yaml/v4"
 )
@@ -18,6 +19,13 @@ type Dotgen struct {
 	Env Env `yaml:"env,omitempty"`
 	// Commands holds the command definitions.
 	Commands []Command `yaml:"commands,omitempty"`
+}
+
+// commandExport holds the rendered output for one command.
+type commandExport struct {
+	name    string
+	command string
+	err     error
 }
 
 // New parses the provided YAML data into the Dotgen structure.
@@ -68,7 +76,7 @@ func (a Dotgen) Filtered(os, shell string) (dotgen Dotgen) {
 }
 
 // Export returns a string representation of the Dotgen configuration.
-func (a Dotgen) Export(shell, file string, instrument bool) (string, error) {
+func (a Dotgen) Export(shell, file string, instrument bool, parallel int) (string, error) {
 	var buf bytes.Buffer
 
 	if len(a.Env) > 0 {
@@ -99,15 +107,14 @@ func (a Dotgen) Export(shell, file string, instrument bool) (string, error) {
 		buf.WriteString("\n# Commands\n")
 		buf.WriteString("# ------------------------------------------------\n")
 
-		for _, c := range a.Commands {
-			name := c.Name
+		commands := exportCommands(a.Commands, shell, parallel)
 
-			command, err := c.Export(shell)
-			if err != nil {
-				return "", err
+		for _, c := range commands {
+			if c.err != nil {
+				return "", c.err
 			}
 
-			buf.WriteString(instrumentation.Wrap(name, command))
+			buf.WriteString(instrumentation.Wrap(c.name, c.command))
 
 			buf.WriteString("\n")
 		}
@@ -118,4 +125,60 @@ func (a Dotgen) Export(shell, file string, instrument bool) (string, error) {
 	}
 
 	return strings.TrimSpace(buf.String()), nil
+}
+
+// exportCommand renders one command for shell export.
+func exportCommand(command Command, shell string) commandExport {
+	output, err := command.Export(shell)
+
+	return commandExport{
+		name:    command.Name,
+		command: output,
+		err:     err,
+	}
+}
+
+// exportCommands renders commands with bounded concurrency while preserving output order.
+func exportCommands(commands []Command, shell string, parallel int) []commandExport {
+	if parallel < 1 {
+		parallel = 1
+	}
+
+	exports := make([]commandExport, len(commands))
+	if len(commands) == 0 {
+		return exports
+	}
+
+	if parallel > len(commands) {
+		parallel = len(commands)
+	}
+
+	if parallel == 1 {
+		for i, command := range commands {
+			exports[i] = exportCommand(command, shell)
+		}
+
+		return exports
+	}
+
+	jobs := make(chan int)
+
+	var waitGroup sync.WaitGroup
+
+	for range parallel {
+		waitGroup.Go(func() {
+			for i := range jobs {
+				exports[i] = exportCommand(commands[i], shell)
+			}
+		})
+	}
+
+	for i := range commands {
+		jobs <- i
+	}
+
+	close(jobs)
+	waitGroup.Wait()
+
+	return exports
 }

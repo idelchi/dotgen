@@ -331,6 +331,7 @@ dotgen [options] [patterns...]
 - `--verbose` - Increase verbosity in rendered output
 - `--debug` - Show all variables and rendered templates without processing
 - `-I, --instrument` - Add instrumentation to rendered output to time commands
+- `-j, --parallel` - Number of concurrent command exports (`1` disables parallelism)
 - `--hash` - Compute hash of all included files
 - `--dry` - Show a list of files that would be processed without executing
 - `-v, --version` - Show version
