@@ -89,6 +89,21 @@ func size(path string) int64 {
 	return info.Size()
 }
 
+// fingerprint returns a SHA-256 digest of a file's normalized path and contents,
+// or an empty string if the file cannot be read.
+func fingerprint(path string) string {
+	if path == "" {
+		return ""
+	}
+
+	digest, err := format.Fingerprint(path)
+	if err != nil {
+		return ""
+	}
+
+	return digest
+}
+
 // join joins multiple path elements into a single path.
 func join(paths ...string) string {
 	return filepath.ToSlash(filepath.Join(paths...))
@@ -143,6 +158,7 @@ func FuncMap() map[string]any {
 		"which":       which,
 		"resolve":     resolve,
 		"size":        size,
+		"fingerprint": fingerprint,
 		"join":        join,
 		"read":        read,
 		"posixPath":   posixPath,

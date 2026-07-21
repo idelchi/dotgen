@@ -38,7 +38,7 @@ commands:
 ```
 <!-- prettier-ignore-end -->
 
-And outputs shell code you can source:
+and outputs shell code you can source:
 
 ```sh
 # Environment variables
@@ -103,6 +103,12 @@ a body section for your actual dotfiles.
 # Header (optional) - define template variables and global excludes
 values:
   BIN_DIR: ${HOME}/bin
+
+dependencies:
+  executables:
+    - git
+  files:
+    - rc/**/*.rc
 
 # Multiple exclude conditions are OR'ed together
 exclude:
@@ -209,7 +215,7 @@ commands:
       - bash
 ```
 
-Or use template logic to exclude conditionally:
+or use template logic to exclude conditionally:
 
 <!-- prettier-ignore-start -->
 ```yaml
@@ -273,6 +279,29 @@ Paths support the same directory expansion, doublestar globbing, platform suffix
 Env-file templates are rendered before imported env values are applied, so `env` and `mustEnv` read the process
 environment rather than values from other `--env-file` files.
 
+### Dependencies
+
+Declare files and executables that affect generated output but are not dotgen inputs themselves:
+
+```yaml
+dependencies:
+  executables:
+    - starship
+    - zoxide
+  files:
+    - rc/01-task.rc
+    - rc/**/*.rc
+```
+
+Dependencies are declared in the optional header and contribute to `--hash`; they are not exposed as template values
+or rendered into the generated shell output. Relative file paths resolve from the declaring configuration file,
+doublestar globs are supported, and patterns with no matches are allowed.
+
+Files are fingerprinted from their normalized path and SHA-256 content. Executables are resolved from `PATH` and
+fingerprinted from their command name, resolved path, size, and modification time. Missing executables are recorded so
+installing or removing one changes the hash. Dependencies of arbitrary shell commands and remote resources cannot be
+discovered automatically and must be declared or pinned explicitly.
+
 ## Templating
 
 All config files are processed as Go templates with [slim-sprig](https://go-task.github.io/slim-sprig)
@@ -286,6 +315,7 @@ functions plus custom helpers:
 - `which "cmd"` - Get full path to a command if in PATH, empty string if not found
 - `resolve "paths"...` - Joins multiple path elements and returns the full path if it exists, empty string otherwise
 - `size "path"` - Get file size in bytes, 0 if missing
+- `fingerprint "path"` - Get a SHA-256 fingerprint of a file's normalized path and contents, empty string if unreadable
 - `join "paths"...` - Join multiple path elements into a single path
 - `read "path"` - Read file content, returns an error if the file doesn't exist or can't be read
 - `posixPath "path"` - Convert Windows path (like `C:/...` or `C:\...`) to Posix format (`/c/...`)
@@ -332,7 +362,7 @@ dotgen [options] [patterns...]
 - `--debug` - Show all variables and rendered templates without processing
 - `-I, --instrument` - Add instrumentation to rendered output to time commands
 - `-j, --parallel` - Number of concurrent command exports (`1` disables parallelism)
-- `--hash` - Compute hash of all included files
+- `--hash` - Compute the hash of all included files, variables, and declared dependencies
 - `--dry` - Show a list of files that would be processed without executing
 - `-v, --version` - Show version
 - `--shell-completion` - Generate shell completion script for specified shell (bash, zsh, fish, powershell)
@@ -357,7 +387,7 @@ Use variables and templates instead of hardcoded paths. Change `BIN_DIR` once, u
 
 **Cached generation**
 Generate once on login, source the cached output. Fast shell startup without losing flexibility.
-Use `--hash` to further optimize caching by only regenerating on config changes.
+Use `--hash` to further optimize caching by only regenerating when configuration or declared dependencies change.
 
 ## Demo
 

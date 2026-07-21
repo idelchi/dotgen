@@ -6,6 +6,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/joho/godotenv"
 
@@ -153,6 +154,8 @@ func logic(options Options, logger Logger) error {
 	for _, file := range files {
 		logger.Printlnf("  - %q", file)
 
+		dependencyRecords := []string{}
+
 		vars, err := mergeVars(options, nil, file)
 		if err != nil {
 			return err
@@ -220,11 +223,23 @@ func logic(options Options, logger Logger) error {
 				return err
 			}
 
+			dependencyRecords, err = header.Dependencies.Fingerprints(filepath.Dir(file))
+			if err != nil {
+				return fmt.Errorf("fingerprinting dependencies in %q: %w", file, err)
+			}
+
 			if options.Debug {
 				fmt.Println("merged variables:")
 				fmt.Println("*******************")
 				fmt.Println(format.Map(vars, "%s=%q"))
 				fmt.Println("*******************")
+
+				if len(dependencyRecords) > 0 {
+					fmt.Println("dependency fingerprints:")
+					fmt.Println("*******************")
+					fmt.Println(strings.Join(dependencyRecords, "\n"))
+					fmt.Println("*******************")
+				}
 			}
 
 			doc = docs[1]
@@ -232,7 +247,13 @@ func logic(options Options, logger Logger) error {
 			return fmt.Errorf("expected at most 2 documents in %q, got %d", file, len(docs))
 		}
 
-		included[file] = vars.Export()
+		hashState := vars.Export()
+
+		if len(dependencyRecords) > 0 {
+			hashState += "\n[dependencies]\n" + strings.Join(dependencyRecords, "\n")
+		}
+
+		included[file] = hashState
 
 		if options.Dry || options.Hash {
 			continue

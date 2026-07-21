@@ -102,7 +102,25 @@ func Map[T any](data map[string]T, format string) string {
 	return strings.Join(out, "\n")
 }
 
-// Hash deterministically combines each file's contents and its exported variables into a single SHA-256 digest.
+// Fingerprint returns a SHA-256 digest of a file's normalized absolute path and contents.
+func Fingerprint(path string) (string, error) {
+	absolute, err := filepath.Abs(filepath.Clean(path))
+	if err != nil {
+		return "", fmt.Errorf("resolving %q: %w", path, err)
+	}
+
+	data, err := os.ReadFile(absolute) //nolint:gosec // Path is explicitly provided by the user.
+	if err != nil {
+		return "", fmt.Errorf("reading %q: %w", path, err)
+	}
+
+	payload := filepath.ToSlash(absolute) + "\n" + string(data)
+	digest := sha256.Sum256([]byte(payload))
+
+	return hex.EncodeToString(digest[:]), nil
+}
+
+// Hash deterministically combines each file's contents and associated state into a single SHA-256 digest.
 func Hash(included map[string]string) (string, error) {
 	if len(included) == 0 {
 		return "", errors.New("no input provided")
@@ -110,18 +128,18 @@ func Hash(included map[string]string) (string, error) {
 
 	digests := make([]string, 0, len(included))
 
-	for name, vars := range included {
+	for name, state := range included {
 		data, err := os.ReadFile(filepath.Clean(name))
 		if err != nil {
 			return "", fmt.Errorf("reading %q: %w", name, err)
 		}
 
 		fileHash := sha256.Sum256(data)
-		exportHash := sha256.Sum256([]byte(vars))
+		stateHash := sha256.Sum256([]byte(state))
 
 		entry := name + "\n" +
 			hex.EncodeToString(fileHash[:]) + "\n" +
-			hex.EncodeToString(exportHash[:]) + "\n"
+			hex.EncodeToString(stateHash[:]) + "\n"
 
 		entryHash := sha256.Sum256([]byte(entry))
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/idelchi/dotgen/internal/dependency"
 	"github.com/idelchi/dotgen/internal/exclusion"
 
 	"go.yaml.in/yaml/v4"
@@ -15,6 +16,8 @@ import (
 type Header struct {
 	// Values contains predefined variables to use for templating.
 	Values Variables `yaml:"values,omitempty"`
+	// Dependencies contains external inputs that contribute to the generated hash.
+	Dependencies dependency.Dependencies `yaml:"dependencies,omitempty"`
 	// Exclude indicates whether this file should be excluded from processing.
 	Exclude exclusion.Exclude `yaml:"exclude,omitempty"`
 }
