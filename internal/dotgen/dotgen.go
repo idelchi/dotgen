@@ -59,10 +59,10 @@ func (a Dotgen) Validate() error {
 	return errors.Join(errs...)
 }
 
-// Filtered returns a new Dotgen instance with commands filtered based on the provided OS and shell.
-func (a Dotgen) Filtered(os, shell string) (dotgen Dotgen) {
+// Filtered returns a new Dotgen instance with commands filtered based on the provided platforms and shell.
+func (a Dotgen) Filtered(platforms []string, shell string) (dotgen Dotgen) {
 	for _, c := range a.Commands {
-		if c.IsExcluded(os, shell) {
+		if c.IsExcluded(platforms, shell) {
 			continue
 		}
 

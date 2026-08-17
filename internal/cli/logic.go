@@ -284,7 +284,7 @@ func logic(options Options, logger Logger) error {
 			return err //nolint:wrapcheck // Error is already descriptive enough.
 		}
 
-		dotgen = dotgen.Filtered(currentOS, options.Shell)
+		dotgen = dotgen.Filtered(activePlatformSuffixes(currentOS), options.Shell)
 
 		export, err := dotgen.Export(options.Shell, file, options.Instrument, options.Parallel)
 		if err != nil {

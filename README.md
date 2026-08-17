@@ -215,6 +215,8 @@ commands:
       - bash
 ```
 
+`os` accepts Go operating-system values plus `wsl` and `docker`. Commands targeting `linux` also match WSL and Linux containers.
+
 or use template logic to exclude conditionally:
 
 <!-- prettier-ignore-start -->

@@ -189,13 +189,15 @@ func (c *Command) Export(shell string) (string, error) {
 	}
 }
 
-// IsExcluded checks if the command should be excluded based on the provided OS and shell.
-func (c *Command) IsExcluded(os, shell string) bool {
+// IsExcluded checks if the command should be excluded based on the provided platforms and shell.
+func (c *Command) IsExcluded(platforms []string, shell string) bool {
 	if c.Exclude.IsExcluded() {
 		return true
 	}
 
-	if len(c.OS) > 0 && !slices.Contains(c.OS, os) {
+	if len(c.OS) > 0 && !slices.ContainsFunc(c.OS, func(platform string) bool {
+		return slices.Contains(platforms, platform)
+	}) {
 		return true
 	}
 
